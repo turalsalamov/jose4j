@@ -108,7 +108,15 @@ public class JsonWebSignature extends JsonWebStructure
         }
 
         setEncodedHeader(parts[0]);
-        setEncodedPayload(parts[1]);
+        if (isRfc7797UnencodedPayload())
+        {
+            setPayload(parts[1]);
+        }
+        else
+        {
+            setEncodedPayload(parts[1]);
+        }
+
         setSignature(base64url.base64UrlDecode(parts[2]));
     }
 
@@ -130,7 +138,23 @@ public class JsonWebSignature extends JsonWebStructure
     public String getCompactSerialization() throws JoseException
     {
         this.sign();
-        return CompactSerializer.serialize(getEncodedHeader(), getEncodedPayload(), getEncodedSignature());
+        String payload;
+        if (isRfc7797UnencodedPayload())
+        {
+            payload = getStringPayload();
+            if (payload.contains("."))
+            {
+                throw new JoseException("per https://tools.ietf.org/html/rfc7797#section-5.2 " +
+                        "when using the JWS Compact Serialization, unencoded non-detached " +
+                        "payloads using period ('.') characters would cause parsing errors; " +
+                        "such payloads MUST NOT be used with the JWS Compact Serialization.");
+            }
+        }
+        else
+        {
+            payload = getEncodedPayload();
+        }
+        return CompactSerializer.serialize(getEncodedHeader(), payload, getEncodedSignature());
     }
 
     /**

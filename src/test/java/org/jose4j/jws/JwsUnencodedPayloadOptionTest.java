@@ -5,12 +5,16 @@ import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwx.HeaderParameterNames;
+import org.jose4j.keys.ExampleRsaKeyFromJws;
+import org.jose4j.lang.JoseException;
 import org.jose4j.lang.StringUtil;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Key;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
 import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
 import static org.junit.Assert.*;
 
@@ -167,5 +171,49 @@ public class JwsUnencodedPayloadOptionTest
 
         final byte[] signed = hmacSha256.sign(key, securedInputBytes, providerContext);
         assertThat(Base64Url.encode(signed), equalTo(jws.getEncodedSignature()));
+    }
+
+    @Test
+    public void compactSerializationUnencodedPayload() throws JoseException
+    {
+        // https://bitbucket.org/b_c/jose4j/issues/156 shows the b64:false didn't work (0.6.5 and prior)
+        // with compact serialization.
+
+        String payload = "{\"key\": \"value\"}";
+
+        JsonWebSignature signerJws = new JsonWebSignature();
+        signerJws.setPayload(payload);
+        signerJws.getHeaders().setObjectHeaderValue(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD, false);
+        signerJws.setCriticalHeaderNames(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD);
+        signerJws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+        signerJws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+        String compactSerialization = signerJws.getCompactSerialization();
+        assertThat(compactSerialization, containsString(payload));
+
+        JsonWebSignature verifierJws = new JsonWebSignature();
+        verifierJws.setCompactSerialization(compactSerialization);
+        verifierJws.setKey(ExampleRsaKeyFromJws.PUBLIC_KEY);
+        assertTrue(verifierJws.verifySignature());
+        assertThat(payload, is(equalTo(verifierJws.getPayload())));
+
+
+        payload = "I want a hamburger. No, a cheeseburger. I want a hotdog. I want a milkshake.";
+
+        signerJws = new JsonWebSignature();
+        signerJws.setPayload(payload);
+        signerJws.getHeaders().setObjectHeaderValue(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD, false);
+        signerJws.setCriticalHeaderNames(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD);
+        signerJws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+        signerJws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+        try
+        {
+            compactSerialization = signerJws.getCompactSerialization();
+            fail("JWS Compact Serialization with unencoded non-detached payloads cannot have period ('.') characters but " + compactSerialization);
+        }
+        catch (JoseException e)
+        {
+            Logger log = LoggerFactory.getLogger(this.getClass());
+            log.debug("Expected exception because JWS Compact Serialization with unencoded non-detached payloads cannot have period ('.') characters : {}", e.toString());
+        }
     }
 }
