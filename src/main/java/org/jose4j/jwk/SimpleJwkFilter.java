@@ -114,14 +114,7 @@ public class SimpleJwkFilter
 
     String getCrv(JsonWebKey jwk)
     {
-        try
-        {
-            return ((EllipticCurveJsonWebKey) jwk).getCurveName();
-        }
-        catch (ClassCastException e)
-        {
-            return null;
-        }
+        return (jwk instanceof EllipticCurveJsonWebKey) ? ((EllipticCurveJsonWebKey) jwk).getCurveName() : null;
     }
 
     String[] getThumbs(JsonWebKey jwk, boolean allowFallbackDeriveFromX5c)
@@ -131,7 +124,7 @@ public class SimpleJwkFilter
             return EMPTY;
         }
 
-        try
+        if (jwk instanceof PublicJsonWebKey)
         {
             PublicJsonWebKey publicJwk = (PublicJsonWebKey) jwk;
             String x5t = publicJwk.getX509CertificateSha1Thumbprint(allowFallbackDeriveFromX5c);
@@ -139,7 +132,7 @@ public class SimpleJwkFilter
 
             return new String[] {x5t, x5tS256};
         }
-        catch (ClassCastException e)
+        else
         {
             return EMPTY;
         }

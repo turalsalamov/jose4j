@@ -63,14 +63,6 @@ public class JwksDecryptionKeyResolver implements DecryptionKeyResolver
             throw new UnresolvableKeyException(sb.toString());
         }
 
-        try
-        {
-            PublicJsonWebKey publicJsonWebKey = (PublicJsonWebKey) selected;
-            return publicJsonWebKey.getPrivateKey();
-        }
-        catch (ClassCastException e)
-        {
-            return selected.getKey();
-        }
+        return selected instanceof PublicJsonWebKey ? ((PublicJsonWebKey) selected).getPrivateKey() : selected.getKey();
     }
 }
