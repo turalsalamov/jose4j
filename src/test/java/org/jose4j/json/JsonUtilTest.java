@@ -16,14 +16,18 @@
 
 package org.jose4j.json;
 
+import org.jose4j.lang.ExceptionHelp;
 import org.junit.Assert;
 import org.jose4j.lang.JoseException;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import static org.junit.Assert.fail;
 
 /**
  */
@@ -63,7 +67,7 @@ public class JsonUtilTest
         try
         {
             Map<String,?> map = JsonUtil.parseJson(basic);
-            Assert.fail("parsing of " + basic + " should fail because the same member name occurs multiple times but returned: " + map);
+            fail("parsing of " + basic + " should fail because the same member name occurs multiple times but returned: " + map);
         }
         catch (JoseException e)
         {
@@ -99,7 +103,7 @@ public class JsonUtilTest
         try
         {
             Map<String,?> map = JsonUtil.parseJson(json);
-            Assert.fail("parsing of " + json + " should fail because the same member name occurs multiple times but returned: " + map);
+            fail("parsing of " + json + " should fail because the same member name occurs multiple times but returned: " + map);
         }
         catch (JoseException e)
         {
@@ -115,7 +119,23 @@ public class JsonUtilTest
         Assert.assertEquals(3, parsed.size());
     }
 
-
+    @Test
+    public void testNonObjectErrorMessage()
+    {
+        String[] jsons = new String[] {"[\"key\",\"value\"]", "false", "\"really?\"", "1001", "null"};
+        for (String json : jsons)
+        {
+            try
+            {
+                Map<String, Object> parsed = JsonUtil.parseJson(json);
+                fail("shouldn't work but " + parsed);
+            }
+            catch (JoseException e)
+            {
+                LoggerFactory.getLogger(this.getClass()).debug("Expected: " + e);
+            }
+        }
+    }
 
     //todo some general JSON tests?
     // todo disallow extra trailing data (and leading?)

@@ -59,11 +59,20 @@ public class JsonUtil
         try
         {
             JSONParser parser = new JSONParser();
-            return (DupeKeyDisallowingLinkedHashMap)parser.parse(jsonString, CONTAINER_FACTORY);
+            Object parsed = parser.parse(jsonString, CONTAINER_FACTORY);
+            if (parsed == null)
+            {
+                throw new JoseException("Parsing returned null");
+            }
+            return (Map) parsed;
         }
         catch (ParseException | IllegalArgumentException e)
         {
             throw new JoseException("Parsing error: " + e, e);
+        }
+        catch (ClassCastException e)
+        {
+            throw new JoseException("Expecting a JSON object at the root but " + e, e);
         }
     }
 
