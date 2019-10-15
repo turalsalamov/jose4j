@@ -82,6 +82,8 @@ public class JwtConsumerBuilder
     private boolean requireJti;
     private NumericDateValidator dateClaimsValidator = new NumericDateValidator();
 
+    private TypeValidator typeValidator;
+
     private List<ErrorCodeValidator> customValidators = new ArrayList<>();
 
     private boolean requireSignature = true;
@@ -671,6 +673,21 @@ public class JwtConsumerBuilder
     }
 
     /**
+     * Facilities explicit JWT typing by setting the expected media type value of the "typ" header of the
+     * innermost JWT including prepending "application/" to to any "typ" value not containing a
+     * '/' as defined in <a href="https://tools.ietf.org/html/rfc7515#section-4.1.9">Section 4.1.9 of RFC 7515</a>.
+     *
+     * @param requireType true if the type header is required, false otherwise
+     * @param expectedType the expected value of the "typ" header
+     * @return the same JwtConsumerBuilder
+     */
+    public JwtConsumerBuilder setExpectedType(boolean requireType, String expectedType)
+    {
+        typeValidator = new TypeValidator(requireType, expectedType);
+        return this;
+    }
+
+    /**
      * Create the JwtConsumer with the options provided to the builder.
      * @return the JwtConsumer
      */
@@ -701,6 +718,11 @@ public class JwtConsumerBuilder
                 SubValidator subValidator = expectedSubject == null ? new SubValidator(requireSubject) : new SubValidator(expectedSubject);
                 validators.add(subValidator);
                 validators.add(new JtiValidator(requireJti));
+
+                if (typeValidator != null)
+                {
+                    validators.add(typeValidator);
+                }
             }
 
             validators.addAll(customValidators);

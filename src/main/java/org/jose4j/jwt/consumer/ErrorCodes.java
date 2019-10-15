@@ -145,4 +145,15 @@ public class ErrorCodes
      */
     public static final int INTEGRITY_MISSING = 20;
 
+    /**
+     * No "typ" header parameter was present in the innermost JWS/JWE but the <code>JwtConsumer</code> was
+     * set up to require explicit typing.
+     */
+    public static final int TYPE_MISSING = 21;
+
+    /**
+     * The type "typ" header value was invalid based on the type that the <code>JwtConsumer</code>
+     * was set up to expect.
+     */
+    public static final int TYPE_INVALID = 22;
 }

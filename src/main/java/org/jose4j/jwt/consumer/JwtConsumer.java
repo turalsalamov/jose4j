@@ -462,7 +462,7 @@ public class JwtConsumer
 
         if (!issues.isEmpty())
         {
-            String msg = "JWT (claims->" + jwtCtx.getJwtClaims().getRawJson() + ") rejected due to invalid claims.";
+            String msg = "JWT (claims->" + jwtCtx.getJwtClaims().getRawJson() + ") rejected due to invalid claims or other invalid content.";
             throw new InvalidJwtException(msg, issues, jwtCtx);
         }
     }

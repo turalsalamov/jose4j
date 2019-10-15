@@ -33,7 +33,9 @@ public class EmbeddedJwkVerificationKeyResolverTest
                 "55wEONmboEoZou0fbIIifsFmp_UwPE3kj0G9sEA5AN9jjzHeRNF6rn-scrw";
 
         EmbeddedJwkVerificationKeyResolver embeddedJwkVerificationKeyResolver = new EmbeddedJwkVerificationKeyResolver();
-        JwtConsumerBuilder b = new JwtConsumerBuilder().setVerificationKeyResolver(embeddedJwkVerificationKeyResolver);
+        JwtConsumerBuilder b = new JwtConsumerBuilder()
+                .setVerificationKeyResolver(embeddedJwkVerificationKeyResolver)
+                .setExpectedType(true,"application/dpop+jwt");
         JwtConsumer consumer = b.build();
         JwtClaims claims = consumer.processToClaims(jwt);
 
@@ -83,9 +85,11 @@ public class EmbeddedJwkVerificationKeyResolverTest
 
         String jwt = jws.getCompactSerialization();
 
-
         EmbeddedJwkVerificationKeyResolver embeddedJwkResolver = new EmbeddedJwkVerificationKeyResolver();
-        JwtConsumer jwtConsumer = new JwtConsumerBuilder().setVerificationKeyResolver(embeddedJwkResolver).build();
+        JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                .setVerificationKeyResolver(embeddedJwkResolver)
+                .setExpectedType(true, "dpop+jwt")
+                .build();
         JwtContext context = jwtConsumer.process(jwt);
 
         assertThat("GET", is(equalTo(context.getJwtClaims().getStringClaimValue("htm"))));

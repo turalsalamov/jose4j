@@ -62,6 +62,7 @@ import org.junit.Test;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -1333,6 +1334,230 @@ public class JwtConsumerTest
             assertTrue(joseObjects.get(0) instanceof JsonWebSignature);
         }
 
+    }
+
+    @Test
+    public void testExplicitTyping() throws Exception
+    {
+        JwtClaims claims = new JwtClaims();
+        claims.setSubject("subject");
+        claims.setAudience("audience");
+        claims.setIssuer("issuer");
+        claims.setExpirationTimeMinutesInTheFuture(10);
+        claims.setNotBeforeMinutesInThePast(5);
+        claims.setGeneratedJwtId();
+
+        JsonWebSignature jws = new JsonWebSignature();
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+        jws.setPayload(claims.toJson());
+        jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+        String innerJwt = jws.getCompactSerialization();
+
+        JsonWebEncryption jwe = new JsonWebEncryption();
+        jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA_OAEP);
+        jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
+        jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPublicKey());
+        jwe.setContentTypeHeaderValue("JWT");
+        jwe.setPayload(innerJwt);
+        String jwt = jwe.getCompactSerialization();
+
+        JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(false,"at+jwt")
+                .build();
+
+        JwtContext jwtContext = jwtConsumer.process(jwt);
+        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(true,"at+jwt")
+                .build();
+
+        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtConsumer);
+
+
+        jws = new JsonWebSignature();
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+        jws.setPayload(claims.toJson());
+        jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+        innerJwt = jws.getCompactSerialization();
+
+        jwe = new JsonWebEncryption();
+        jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA_OAEP);
+        jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
+        jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPublicKey());
+        jwe.setContentTypeHeaderValue("JWT");
+        jwe.setHeader(HeaderParameterNames.TYPE, "at+jwt");
+        jwe.setPayload(innerJwt);
+        jwt = jwe.getCompactSerialization();
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(false,"at+jwt")
+                .build();
+
+        jwtContext = jwtConsumer.process(jwt);
+        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(true,"at+jwt")
+                .build();
+
+        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtConsumer);
+
+        jws = new JsonWebSignature();
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+        jws.setPayload(claims.toJson());
+        jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+        jws.setHeader(HeaderParameterNames.TYPE, "at+jwt");
+        innerJwt = jws.getCompactSerialization();
+
+        jwe = new JsonWebEncryption();
+        jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA_OAEP);
+        jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
+        jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPublicKey());
+        jwe.setContentTypeHeaderValue("JWT");
+        jwe.setPayload(innerJwt);
+        jwt = jwe.getCompactSerialization();
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(false,"application/at+jwt")
+                .build();
+
+        jwtContext = jwtConsumer.process(jwt);
+        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(true,"at+jwt")
+                .build();
+
+        jwtContext = jwtConsumer.process(jwt);
+        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(true,"secevent+jwt")
+                .build();
+
+        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtConsumer);
+
+
+        jws = new JsonWebSignature();
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+        jws.setPayload(claims.toJson());
+        jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+        jws.getHeaders().setObjectHeaderValue(HeaderParameterNames.TYPE, Arrays.asList("at+jwt","not+ok"));
+        innerJwt = jws.getCompactSerialization();
+
+        jwe = new JsonWebEncryption();
+        jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA_OAEP);
+        jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
+        jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPublicKey());
+        jwe.setContentTypeHeaderValue("JWT");
+        jwe.setPayload(innerJwt);
+        jwt = jwe.getCompactSerialization();
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(true,"at+jwt")
+                .build();
+
+        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtConsumer);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(true,"at+jwt")
+                .build();
+
+        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtConsumer);
+
+        jws = new JsonWebSignature();
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+        jws.setPayload(claims.toJson());
+        jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+        jws.setHeader(HeaderParameterNames.TYPE, "");
+        innerJwt = jws.getCompactSerialization();
+
+        jwe = new JsonWebEncryption();
+        jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA_OAEP);
+        jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
+        jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPublicKey());
+        jwe.setContentTypeHeaderValue("JWT");
+        jwe.setPayload(innerJwt);
+        jwt = jwe.getCompactSerialization();
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(true,"at+jwt")
+                .build();
+
+        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtConsumer);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setExpectedIssuer("issuer")
+                .setExpectedAudience("audience")
+                .setRequireSubject()
+                .setRequireExpirationTime()
+                .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey())
+                .setVerificationKey(ExampleRsaKeyFromJws.PUBLIC_KEY)
+                .setExpectedType(true,"at+jwt")
+                .build();
+
+        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtConsumer);
     }
 
     @Test
