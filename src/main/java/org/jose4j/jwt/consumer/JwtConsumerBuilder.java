@@ -522,6 +522,21 @@ public class JwtConsumerBuilder
     }
 
     /**
+     * Places restrictions on how far from the time of evaluation the value of an
+     * <a href="http://tools.ietf.org/html/rfc7519#section-4.1.6">issued at time ("iat") claim</a> can be while still
+     * accepting the token as valid. Also use {@link #setRequireIssuedAt()} to require that an "iat" claim be present.
+     * @param allowedSecondsInTheFuture how many seconds ahead of the current evaluation time the value of the "iat" claim can be
+     * @param allowedSecondsInThePast how many seconds ago the value of the "iat" claim can be
+     * @return the same JwtConsumerBuilder
+     */
+    public JwtConsumerBuilder setIssuedAtRestrictions(int allowedSecondsInTheFuture, int allowedSecondsInThePast)
+    {
+        dateClaimsValidator.setIatAllowedSecondsInTheFuture(allowedSecondsInTheFuture);
+        dateClaimsValidator.setIatAllowedSecondsInThePast(allowedSecondsInThePast);
+        return this;
+    }
+
+    /**
      * Require that the JWT contain an <a href="http://tools.ietf.org/html/rfc7519#section-4.1.5">not before ("nbf") claim</a>.
      * @return the same JwtConsumerBuilder
      */

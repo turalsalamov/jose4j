@@ -5,6 +5,7 @@ import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.NumericDate;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
@@ -34,6 +35,9 @@ public class EmbeddedJwkVerificationKeyResolverTest
 
         EmbeddedJwkVerificationKeyResolver embeddedJwkVerificationKeyResolver = new EmbeddedJwkVerificationKeyResolver();
         JwtConsumerBuilder b = new JwtConsumerBuilder()
+                .setEvaluationTime(NumericDate.fromSeconds(1562262626))
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(10, 60)
                 .setVerificationKeyResolver(embeddedJwkVerificationKeyResolver)
                 .setExpectedType(true,"application/dpop+jwt");
         JwtConsumer consumer = b.build();
@@ -89,6 +93,8 @@ public class EmbeddedJwkVerificationKeyResolverTest
         JwtConsumer jwtConsumer = new JwtConsumerBuilder()
                 .setVerificationKeyResolver(embeddedJwkResolver)
                 .setExpectedType(true, "dpop+jwt")
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(5, 30)
                 .build();
         JwtContext context = jwtConsumer.process(jwt);
 

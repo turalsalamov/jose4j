@@ -156,4 +156,16 @@ public class ErrorCodes
      * was set up to expect.
      */
     public static final int TYPE_INVALID = 22;
+
+    /**
+     * The value of the Issued At "iat" claim is too far in the future.
+     */
+    public static final int ISSUED_AT_INVALID_FUTURE = 23;
+
+
+    /**
+     * The value of the Issued At "iat" claim is too far in the past.
+     */
+    public static final int ISSUED_AT_INVALID_PAST = 24;
+
 }

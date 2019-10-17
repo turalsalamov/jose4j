@@ -74,6 +74,23 @@ public class SimpleJwtConsumerTestHelp
         jwtConsumer.validate(new JwtContext(jwtClaims, Collections.<JsonWebStructure>emptyList()));
     }
 
+    static void expectValidationFailureWithErrorCode(String jwt, JwtConsumer jwtConsumer, Integer errorCode)
+    {
+        try
+        {
+            jwtConsumer.process(jwt);
+            Assert.fail("validation should have thrown an exception");
+        }
+        catch (InvalidJwtException e)
+        {
+            if (errorCode != null && !e.hasErrorCode(errorCode))
+            {
+                Assert.fail("jwt validation exception was thrown but it didn't have error code " + errorCode + " " + e);
+            }
+            log.debug("Expected exception: {}", e.toString());
+        }
+    }
+
     static void expectValidationFailureWithErrorCode(JwtClaims jwtClaims, JwtConsumer jwtConsumer, Integer errorCode)
     {
         try

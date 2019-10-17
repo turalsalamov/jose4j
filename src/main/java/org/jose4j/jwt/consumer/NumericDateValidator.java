@@ -36,6 +36,9 @@ public class NumericDateValidator implements ErrorCodeValidator
     private int allowedClockSkewSeconds = 0;
     private int maxFutureValidityInMinutes = 0;
 
+    private Integer iatAllowedSecondsInTheFuture;
+    private Integer iatAllowedSecondsInThePast;
+
     public void setRequireExp(boolean requireExp)
     {
         this.requireExp = requireExp;
@@ -64,6 +67,16 @@ public class NumericDateValidator implements ErrorCodeValidator
     public void setMaxFutureValidityInMinutes(int maxFutureValidityInMinutes)
     {
         this.maxFutureValidityInMinutes = maxFutureValidityInMinutes;
+    }
+
+    public void setIatAllowedSecondsInTheFuture(int iatAllowedSecondsInTheFuture)
+    {
+        this.iatAllowedSecondsInTheFuture = iatAllowedSecondsInTheFuture;
+    }
+
+    public void setIatAllowedSecondsInThePast(int iatAllowedSecondsInThePast)
+    {
+        this.iatAllowedSecondsInThePast = iatAllowedSecondsInThePast;
     }
 
     @Override
@@ -127,6 +140,22 @@ public class NumericDateValidator implements ErrorCodeValidator
             {
                 String msg = "The JWT is not yet valid as the evaluation time " + evaluationTime + " is before the Not Before (nbf=" + notBefore + ") claim time" + skewMessage();
                 return new Error(ErrorCodes.NOT_YET_VALID, msg);
+            }
+        }
+
+        NumericDate iat = jwtContext.getJwtClaims().getIssuedAt();
+        if (iat != null)
+        {
+            if ((iatAllowedSecondsInTheFuture != null) && ((iat.getValue() - evaluationTime.getValue()) - allowedClockSkewSeconds) > iatAllowedSecondsInTheFuture)
+            {
+                String msg = "iat " + iat + " is more than " + iatAllowedSecondsInTheFuture + " second(s) ahead of now " + evaluationTime + skewMessage();;
+                return new Error(ErrorCodes.ISSUED_AT_INVALID_FUTURE, msg);
+            }
+
+            if ((iatAllowedSecondsInThePast != null) && ((evaluationTime.getValue() - iat.getValue()) - allowedClockSkewSeconds) > iatAllowedSecondsInThePast)
+            {
+                String msg = "As of now " + evaluationTime + " iat " + iat + " is more than " + iatAllowedSecondsInThePast + " second(s) in the past" + skewMessage();;
+                return new Error(ErrorCodes.ISSUED_AT_INVALID_PAST, msg);
             }
         }
 

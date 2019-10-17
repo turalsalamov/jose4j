@@ -21,7 +21,6 @@ import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.JceProviderTestSupport;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.JsonWebEncryption;
-import org.jose4j.jwe.KeyManagementAlgorithm;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
 import org.jose4j.jwk.EcJwkGenerator;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
@@ -42,7 +41,6 @@ import org.jose4j.jwx.CompactSerializer;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.JsonWebStructure;
 import org.jose4j.keys.AesKey;
-import org.jose4j.keys.EcKeyUtil;
 import org.jose4j.keys.EllipticCurves;
 import org.jose4j.keys.ExampleEcKeysFromJws;
 import org.jose4j.keys.ExampleRsaJwksFromJwe;
@@ -67,9 +65,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
 import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_128_GCM;
 import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_192_GCM;
 import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_256_GCM;
@@ -2138,6 +2134,131 @@ public class JwtConsumerTest
         claims = jwtConsumer.processToClaims(jwt);
         assertThat(claims.getClaimsMap().size(), equalTo(4));
     }
+
+    @Test
+    public void iatReasonableness() throws Exception
+    {
+        JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(0,60)
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(1571322100))
+                .build();
+
+        long iat = 1571322100;
+        String jwt = iatTestingJwt(iat);
+        JwtClaims claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = 1571322099;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = 1571322043;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = 1571322040;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = 1571322039;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_PAST);
+
+        iat = 1570321001;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_PAST);
+
+        iat = 12345;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_PAST);
+
+        iat = 0;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_PAST);
+
+        iat = -938763;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_PAST);
+
+        iat = 1571322101;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
+
+        iat = 1571322177;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
+
+        iat = 7700000007L;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(10,120)
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(1571322100))
+                .build();
+
+        iat = 1571322100;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat -= 120;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat -= 1;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_PAST);
+
+        iat = 1571322105;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = 1571322110;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = 1571322111;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(0,60)
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .build();
+
+        iat = NumericDate.now().getValue();
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+    }
+
+    private String iatTestingJwt(long when) throws JoseException
+    {
+        NumericDate iat = NumericDate.fromSeconds(when);
+        JwtClaims claims = new JwtClaims();
+        claims.setIssuedAt(iat);
+        claims.setJwtId("meh123");
+        claims.setStringClaim("etc.", "etc., etc., etc...");
+
+        JsonWebSignature jws = new JsonWebSignature();
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
+        jws.setPayload(claims.toJson());
+        jws.setKey(ExampleEcKeysFromJws.PRIVATE_256);
+        return jws.getCompactSerialization();
+    }
+
 
     @Test
     public void requireIntegrityOption() throws JoseException, InvalidJwtException
