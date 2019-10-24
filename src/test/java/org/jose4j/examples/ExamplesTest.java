@@ -281,8 +281,7 @@ public void jwtRoundTripExample() throws JoseException, InvalidJwtException, Mal
             .setExpectedAudience("Audience") // to whom the JWT is intended for
             .setVerificationKey(rsaJsonWebKey.getKey()) // verify the signature with the public key
             .setJwsAlgorithmConstraints( // only allow the expected signature algorithm(s) in the given context
-                    new AlgorithmConstraints(ConstraintType.WHITELIST, // which is only RS256 here
-                            AlgorithmIdentifiers.RSA_USING_SHA256))
+                    ConstraintType.WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256) // which is only RS256 here
             .build(); // create the JwtConsumer instance
 
     try
@@ -722,8 +721,7 @@ public void RFC7797JwsUnencodedPayloadOption() throws Exception
 
     // Set the "b64" header to false, which indicates that the payload is not encoded
     // when calculating the signature (per RFC 7797)
-    signerJws.setHeader(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD, false);
-    //     signerJws.getHeaders().setObjectHeaderValue(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD, false); with older versions
+    signerJws.setHeader(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD, false); // signerJws.getHeaders().setObjectHeaderValue(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD, false); with older versions
 
     // RFC 7797 requires that the "b64" header be listed as critical
     signerJws.setCriticalHeaderNames(HeaderParameterNames.BASE64URL_ENCODE_PAYLOAD);
