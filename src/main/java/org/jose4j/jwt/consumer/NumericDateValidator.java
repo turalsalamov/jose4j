@@ -20,6 +20,10 @@ import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.NumericDate;
 
+import static org.jose4j.lang.Maths.subtract;
+import static org.jose4j.lang.Maths.add;
+
+
 /**
  *
  */
@@ -106,7 +110,7 @@ public class NumericDateValidator implements ErrorCodeValidator
 
         if (expirationTime != null)
         {
-            if ((evaluationTime.getValue() - allowedClockSkewSeconds) >= expirationTime.getValue())
+            if (subtract(evaluationTime.getValue(), allowedClockSkewSeconds) >= expirationTime.getValue())
             {
                 String msg = "The JWT is no longer valid - the evaluation time " + evaluationTime + " is on or after the Expiration Time (exp=" + expirationTime + ") claim value" + skewMessage();
                 return new Error(ErrorCodes.EXPIRED, msg);
@@ -124,8 +128,8 @@ public class NumericDateValidator implements ErrorCodeValidator
 
             if (maxFutureValidityInMinutes > 0)
             {
-                long deltaInSeconds = (expirationTime.getValue() - allowedClockSkewSeconds) - evaluationTime.getValue();
-                if (deltaInSeconds > (maxFutureValidityInMinutes * 60))
+                long deltaInSeconds =  subtract(subtract(expirationTime.getValue(), allowedClockSkewSeconds), evaluationTime.getValue());
+                if (deltaInSeconds > ((long)maxFutureValidityInMinutes * 60L))
                 {
                     String msg = "The Expiration Time (exp="+expirationTime+") claim value cannot be more than " + maxFutureValidityInMinutes
                             + " minutes in the future relative to the evaluation time " + evaluationTime + skewMessage();
@@ -136,25 +140,24 @@ public class NumericDateValidator implements ErrorCodeValidator
 
         if (notBefore != null)
         {
-            if ((evaluationTime.getValue() + allowedClockSkewSeconds) < notBefore.getValue())
+            if (add(evaluationTime.getValue(), allowedClockSkewSeconds) < notBefore.getValue())
             {
                 String msg = "The JWT is not yet valid as the evaluation time " + evaluationTime + " is before the Not Before (nbf=" + notBefore + ") claim time" + skewMessage();
                 return new Error(ErrorCodes.NOT_YET_VALID, msg);
             }
         }
 
-        NumericDate iat = jwtContext.getJwtClaims().getIssuedAt();
-        if (iat != null)
+        if (issuedAt != null)
         {
-            if ((iatAllowedSecondsInTheFuture != null) && ((iat.getValue() - evaluationTime.getValue()) - allowedClockSkewSeconds) > iatAllowedSecondsInTheFuture)
+            if ((iatAllowedSecondsInTheFuture != null) && (subtract(subtract(issuedAt.getValue(), evaluationTime.getValue()), allowedClockSkewSeconds) > iatAllowedSecondsInTheFuture))
             {
-                String msg = "iat " + iat + " is more than " + iatAllowedSecondsInTheFuture + " second(s) ahead of now " + evaluationTime + skewMessage();;
+                String msg = "iat " + issuedAt + " is more than " + iatAllowedSecondsInTheFuture + " second(s) ahead of now " + evaluationTime + skewMessage();;
                 return new Error(ErrorCodes.ISSUED_AT_INVALID_FUTURE, msg);
             }
 
-            if ((iatAllowedSecondsInThePast != null) && ((evaluationTime.getValue() - iat.getValue()) - allowedClockSkewSeconds) > iatAllowedSecondsInThePast)
+            if ((iatAllowedSecondsInThePast != null) && subtract(subtract(evaluationTime.getValue(), issuedAt.getValue()), allowedClockSkewSeconds) > iatAllowedSecondsInThePast)
             {
-                String msg = "As of now " + evaluationTime + " iat " + iat + " is more than " + iatAllowedSecondsInThePast + " second(s) in the past" + skewMessage();;
+                String msg = "As of now " + evaluationTime + " iat " + issuedAt + " is more than " + iatAllowedSecondsInThePast + " second(s) in the past" + skewMessage();;
                 return new Error(ErrorCodes.ISSUED_AT_INVALID_PAST, msg);
             }
         }
@@ -172,6 +175,5 @@ public class NumericDateValidator implements ErrorCodeValidator
         {
             return ".";
         }
-
     }
 }

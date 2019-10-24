@@ -16,6 +16,8 @@
 
 package org.jose4j.jwt;
 
+import org.jose4j.lang.Maths;
+
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -36,7 +38,7 @@ public class NumericDate
 
     private NumericDate(long value)
     {
-        this.value = value;
+        setValue(value);
     }
 
     public static NumericDate now()
@@ -56,7 +58,7 @@ public class NumericDate
 
     public void addSeconds(long seconds)
     {
-        value += seconds;
+        setValue(Maths.add(value, seconds));
     }
 
     /**
@@ -68,15 +70,30 @@ public class NumericDate
     {
         return value;
     }
-    
+
     public void setValue(long value)
     {
-        this.value = value; 
+        this.value = value;
     }
 
     public long getValueInMillis()
     {
-        return getValue() * CONVERSION;  
+        long secs = getValue();
+        long millis = secs * CONVERSION;
+
+        if (!canConvertToMillis())
+        {
+            throw new ArithmeticException("converting " + secs + " seconds to milliseconds (x1000) resulted in long integer overflow (" + millis + ")");
+        }
+
+        return millis;
+    }
+
+    private boolean canConvertToMillis()
+    {
+        long secs = getValue();
+        long millis = secs * CONVERSION;
+        return  (! ((secs > 0 && millis < secs) || (secs < 0 && millis > secs) || (secs == 0 & millis != 0)));
     }
 
     public boolean isBefore(NumericDate when)
@@ -97,10 +114,16 @@ public class NumericDate
     @Override
     public String toString()
     {
-        DateFormat df  = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG);
         StringBuilder sb = new StringBuilder();
-        Date date = new Date(getValueInMillis());
-        sb.append("NumericDate").append("{").append(getValue()).append(" -> ").append(df.format(date)).append('}');
+
+        sb.append("NumericDate").append("{").append(getValue());
+        if (canConvertToMillis())
+        {
+            DateFormat df  = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG);
+            Date date = new Date(getValueInMillis());
+            sb.append(" -> ").append(df.format(date));
+        }
+        sb.append('}');
         return sb.toString();
     }
 
@@ -115,4 +138,5 @@ public class NumericDate
     {
         return (int) (value ^ (value >>> 32));
     }
+
 }

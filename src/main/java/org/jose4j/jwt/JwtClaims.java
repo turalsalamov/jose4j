@@ -25,6 +25,7 @@ import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.JoseException;
 
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -274,6 +275,10 @@ public class JwtClaims
     public NumericDate getNumericDateClaimValue(String claimName) throws MalformedClaimException
     {
         Number number = getClaimValue(claimName, Number.class);
+        if (number instanceof BigInteger)
+        {
+            throw new MalformedClaimException(number + " is unreasonable for a NumericDate");
+        }
         return number != null ? NumericDate.fromSeconds(number.longValue()) : null;
     }
 

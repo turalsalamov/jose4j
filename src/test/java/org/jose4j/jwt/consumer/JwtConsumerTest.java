@@ -2136,6 +2136,162 @@ public class JwtConsumerTest
     }
 
     @Test
+    public void someIatOverflowsOrNearOnes()  throws Exception
+    {
+        JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(Integer.MAX_VALUE,Integer.MAX_VALUE)
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(Long.MAX_VALUE/1000))
+                .build();
+
+        String c = "{\"iat\":9223372036854775808,\"jti\":\"meh123\",\"etc.\":\"etc., etc., etc...\"}"; // long max + 1
+        String jwt = signClaims(c);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MALFORMED_CLAIM);
+
+        c = "{\"iat\":25113002000004770000,\"jti\":\"meh123\",\"etc.\":\"etc., etc., etc...\"}"; // > long max
+        jwt = signClaims(c);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MALFORMED_CLAIM);
+
+        c = "{\"iat\":-9223372036854775809,\"jti\":\"meh123\",\"etc.\":\"etc., etc., etc...\"}"; // long min - 1
+        jwt = signClaims(c);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MALFORMED_CLAIM);
+
+        c = "{\"iat\":-77261600013501300000000,\"jti\":\"meh123\",\"etc.\":\"etc., etc., etc...\"}"; // < long min
+        jwt = signClaims(c);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MALFORMED_CLAIM);
+
+        long iat = Long.MAX_VALUE;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
+
+        iat = Long.MAX_VALUE/1000 + 67281;
+        jwt = iatTestingJwt(iat);
+        JwtClaims claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = Long.MIN_VALUE;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MISCELLANEOUS);
+
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(60,60)
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(Long.MAX_VALUE))
+                .build();
+
+        iat = Long.MAX_VALUE;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = Long.MIN_VALUE;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MISCELLANEOUS);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(Integer.MAX_VALUE,Integer.MAX_VALUE)
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(Long.MAX_VALUE))
+                .setAllowedClockSkewInSeconds(Integer.MAX_VALUE)
+                .build();
+
+        iat = Long.MAX_VALUE;
+        jwt = iatTestingJwt(iat);
+        claims = jwtConsumer.processToClaims(jwt);
+        assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
+
+        iat = Long.MIN_VALUE;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MISCELLANEOUS);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(10,10)
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(0))
+                .setAllowedClockSkewInSeconds(Integer.MAX_VALUE)
+                .build();
+
+        iat = Long.MAX_VALUE;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
+
+        iat = Long.MIN_VALUE;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MISCELLANEOUS);
+    }
+
+    @Test
+    public void someOtherOverflowsOrNearOnes() throws Exception
+    {
+        JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(Long.MAX_VALUE - (62L * Integer.MAX_VALUE)))
+                .setMaxFutureValidityInMinutes(Integer.MAX_VALUE)
+                .setAllowedClockSkewInSeconds(Integer.MAX_VALUE)
+                .build();
+
+        String jwt = dateTestingJwt(null, Long.MAX_VALUE - (62L * Integer.MAX_VALUE) + 7L, Long.MAX_VALUE - (61L * Integer.MAX_VALUE) );
+        JwtClaims claims = jwtConsumer.processToClaims(jwt);
+        assertThat(4 , equalTo(claims.getClaimsMap().size()));
+
+        jwt = signClaims("{\"nbf\":-1239223372036854775808,\"iat\":1571322100,\"exp\":9223372036854775807,\"jti\":\"meh123\"}");
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MALFORMED_CLAIM);
+
+        jwt = signClaims("{\"nbf\":1571322100,\"iat\":12345678900000000000,\"exp\":12345678900000000009,\"jti\":\"meh123\"}");
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MALFORMED_CLAIM);
+
+        jwt = signClaims("{\"nbf\":1571322100,\"iat\":1571322111,\"exp\":157132210009188371766311111,\"jti\":\"meh123\"}");
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MALFORMED_CLAIM);
+
+        jwt = dateTestingJwt(null, null, Long.MAX_VALUE);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.EXPIRATION_TOO_FAR_IN_FUTURE);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(Long.MAX_VALUE - 15))
+                .setMaxFutureValidityInMinutes(35)
+                .setAllowedClockSkewInSeconds(30)
+                .build();
+
+        jwt = dateTestingJwt(-1L, null, Long.MAX_VALUE - 5);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MISCELLANEOUS); // overflow in adding with Skew and eval time when nbf is there
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(Long.MIN_VALUE + 1000))
+                .setAllowedClockSkewInSeconds(6000)
+                .build();
+
+        jwt = dateTestingJwt(null, null, 1572322100L);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MISCELLANEOUS);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(Long.MIN_VALUE + 70))
+                .setAllowedClockSkewInSeconds(65)
+                .setMaxFutureValidityInMinutes(1)
+                .build();
+
+        jwt = dateTestingJwt(null, null, Long.MIN_VALUE + 10);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MISCELLANEOUS);
+
+        jwtConsumer = new JwtConsumerBuilder()
+                .setVerificationKey(ExampleEcKeysFromJws.PUBLIC_256)
+                .setEvaluationTime(NumericDate.fromSeconds(-10))
+                .setMaxFutureValidityInMinutes(1)
+                .build();
+
+        jwt = dateTestingJwt(null, null, Long.MAX_VALUE);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.MISCELLANEOUS);
+    }
+
+
+    @Test
     public void iatReasonableness() throws Exception
     {
         JwtConsumer jwtConsumer = new JwtConsumerBuilder()
@@ -2185,11 +2341,19 @@ public class JwtConsumerTest
         jwt = iatTestingJwt(iat);
         SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_PAST);
 
+        iat = Integer.MIN_VALUE - 88L;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_PAST);
+
         iat = 1571322101;
         jwt = iatTestingJwt(iat);
         SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
 
         iat = 1571322177;
+        jwt = iatTestingJwt(iat);
+        SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
+
+        iat = Integer.MAX_VALUE;
         jwt = iatTestingJwt(iat);
         SimpleJwtConsumerTestHelp.expectValidationFailureWithErrorCode(jwt, jwtConsumer, ErrorCodes.ISSUED_AT_INVALID_FUTURE);
 
@@ -2244,17 +2408,30 @@ public class JwtConsumerTest
         assertThat(iat, equalTo(claims.getIssuedAt().getValue()));
     }
 
-    private String iatTestingJwt(long when) throws JoseException
+    private String dateTestingJwt(Long nbf, Long iat, Long exp) throws JoseException
     {
-        NumericDate iat = NumericDate.fromSeconds(when);
         JwtClaims claims = new JwtClaims();
-        claims.setIssuedAt(iat);
+        if (nbf != null) { claims.setNotBefore(NumericDate.fromSeconds(nbf)); }
+        if (iat != null) { claims.setIssuedAt(NumericDate.fromSeconds(iat)); }
+        if (exp != null) { claims.setExpirationTime(NumericDate.fromSeconds(exp)); }
         claims.setJwtId("meh123");
         claims.setStringClaim("etc.", "etc., etc., etc...");
+        String payload = claims.toJson();
 
+        return signClaims(payload);
+    }
+
+
+    private String iatTestingJwt(long when) throws JoseException
+    {
+        return dateTestingJwt(null, when, null);
+    }
+
+    private String signClaims(String payload) throws JoseException
+    {
         JsonWebSignature jws = new JsonWebSignature();
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
-        jws.setPayload(claims.toJson());
+        jws.setPayload(payload);
         jws.setKey(ExampleEcKeysFromJws.PRIVATE_256);
         return jws.getCompactSerialization();
     }
