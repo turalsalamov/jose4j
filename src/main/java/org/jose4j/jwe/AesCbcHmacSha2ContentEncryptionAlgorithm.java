@@ -145,8 +145,7 @@ public class AesCbcHmacSha2ContentEncryptionAlgorithm extends AlgorithmInfo impl
         {
             Base64Url base64Url = new Base64Url();
             String encTag = base64Url.base64UrlEncode(authenticationTag);
-            String calcEncTag = base64Url.base64UrlEncode(calculatedAuthenticationTag);
-            throw new IntegrityException("Authentication tag check failed. Message=" + encTag + " calculated=" + calcEncTag);
+            throw new IntegrityException("Authentication tag check failed. Message=" + encTag);
         }
 
         Key encryptionKey = new AesKey(ByteUtil.rightHalf(contentEncryptionKey));
