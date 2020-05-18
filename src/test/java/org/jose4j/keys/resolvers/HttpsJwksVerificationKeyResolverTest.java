@@ -22,6 +22,7 @@ import org.jose4j.jwk.*;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwx.JsonWebStructure;
+import org.jose4j.lang.JoseException;
 import org.jose4j.lang.UnresolvableKeyException;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -245,5 +246,74 @@ public class HttpsJwksVerificationKeyResolverTest
             log.debug("this was expected and is okay: {}", e.toString());
         }
 
+    }
+
+    @Test
+    public void conformityByExtension() throws Exception
+    {
+        // OpenID Connect Conformance Profiles v3.0 apparently has a somewhat overzealous test to
+        // Reject an ID Token without kid, if multiple JWKs are supplied in jwks_uri.
+        // This test shows how to do that using a little subclass of HttpsJwksVerificationKeyResolver.
+        // https://bitbucket.org/b_c/jose4j/issues/162 was asking for such a check to be put into VerificationJwkSelector
+        // but that would impact and break legitimate cases (and numerous unit tests).
+        // This shows a way to meet that Conformance test requirement when needed without breaking other usage.
+        String jj = "{\"keys\":[" +
+                        "{\"kty\":\"EC\",\"x\":\"yd4yK8EJWNY-fyB0veOTNqDt_HqpPa45VTSJjIiI8vM\",\"y\":\"UspqZi9nPaUwBY8kD6MPDHslh5f6UMnAiXsg1l3i6UM\",\"crv\":\"P-256\"}," +
+                        "{\"kty\":\"EC\",\"x\":\"3WPq7AnMkQekA1ogYFqNS5NBOXPs68xadKvtsn4pgas\",\"y\":\"CEvQFmGwKv96TQYRrgS-nFl9xWfN8PuLnIwBVmtpfp0\",\"crv\":\"P-256\"}" +
+                        "]}";
+
+        JsonWebKeySet jwks = new JsonWebKeySet(jj);
+
+
+        String location = "https://abc.bfe.xyz/";
+        HttpsJwks httpsJkws = new HttpsJwks(location);
+
+        Get mockGet = mock(Get.class);
+        Map<String,List<String>> headers = Collections.emptyMap();
+        SimpleResponse ok1 = new Response(200, "OK", headers, jj);
+        when(mockGet.get(location)).thenReturn(ok1);
+
+        httpsJkws.setRefreshReprieveThreshold(0);
+        httpsJkws.setSimpleHttpGet(mockGet);
+
+
+        JsonWebSignature jws = new JsonWebSignature();
+        // no kid header
+        jws.setCompactSerialization("eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJtZSIsImV4cCI6MTQ5NDQzNzgwOSwiYXVkIjoidGhlIGF1ZGllbmNlIiwiaXNzIjoidGhlIGlzc3VlciJ9." +
+                "uIRIFrhftV39qJNOdaL8LwrK1prIJIHsP7Gn6jJAVbE2Mx4IkwGzBXDLKMulM1IvKElmSyK_KBg8afywcxoApA");
+
+        HttpsJwksVerificationKeyResolver resolver = new HttpsJwksVerificationKeyResolver(httpsJkws);
+        resolver.setDisambiguateWithVerifySignature(true);
+        jws.setKey(resolver.resolveKey(jws, Collections.<JsonWebStructure>emptyList()));
+        assertTrue(jws.verifySignature());
+
+        CustomHttpsJwksVerificationKeyResolver customResolver = new CustomHttpsJwksVerificationKeyResolver(httpsJkws);
+        try
+        {
+            Key key = customResolver.resolveKey(jws, Collections.<JsonWebStructure>emptyList());
+            assertNull(key);
+        }
+        catch (UnresolvableKeyException e)
+        {
+            log.debug("We expected an exception out of the CustomHttpsJwksVerificationKeyResolver: " + e);
+        }
+    }
+
+    public static class CustomHttpsJwksVerificationKeyResolver extends HttpsJwksVerificationKeyResolver
+    {
+        CustomHttpsJwksVerificationKeyResolver(HttpsJwks httpsJkws)
+        {
+            super(httpsJkws);
+        }
+
+        @Override
+        protected JsonWebKey select(JsonWebSignature jws, List<JsonWebKey> jsonWebKeys) throws JoseException
+        {
+            if (jws.getKeyIdHeaderValue() == null && jsonWebKeys.size() > 1)
+            {
+                throw new UnresolvableKeyException("There are multiple keys in the referenced JWK Set document, but the kid value was not provided in the JOSE Header.");
+            }
+            return super.select(jws, jsonWebKeys);
+        }
     }
 }
