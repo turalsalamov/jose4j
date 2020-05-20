@@ -15,8 +15,8 @@
 */
 package org.jose4j.jwk;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -86,7 +86,7 @@ public class SimpleJwkFilter
 
     public List<JsonWebKey> filter(Collection<JsonWebKey> jsonWebKeys)
     {
-        List<JsonWebKey> filtered = new LinkedList<>();
+        List<JsonWebKey> filtered = new ArrayList<>();
         for (JsonWebKey jwk : jsonWebKeys)
         {
             boolean match = isMatch(kid, jwk.getKeyId());
