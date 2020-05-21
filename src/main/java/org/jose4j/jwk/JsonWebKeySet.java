@@ -130,7 +130,7 @@ public class JsonWebKeySet
 
     public String toJson(JsonWebKey.OutputControlLevel outputControlLevel)
     {
-        LinkedList<Map<String, Object>> keyList = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> keyList = new ArrayList<>(keys.size());
 
         for (JsonWebKey key : keys)
         {
