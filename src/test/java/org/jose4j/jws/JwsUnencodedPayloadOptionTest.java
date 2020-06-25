@@ -50,7 +50,7 @@ public class JwsUnencodedPayloadOptionTest
         String detachedUnencoded = "eyJhbGciOiJIUzI1NiIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..A5dxf2s96_n5FLueVuW1Z_vh161FwXZC4YLPff6dmDY";
 
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.HMAC_SHA256));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, AlgorithmIdentifiers.HMAC_SHA256));
         jws.setPayloadCharEncoding(StringUtil.US_ASCII);
         jws.setCompactSerialization(detachedUnencoded);
         jws.setKey(jwk.getKey());
@@ -104,7 +104,7 @@ public class JwsUnencodedPayloadOptionTest
         assertThat(payload, equalTo(jws.getUnverifiedPayload()));
 
         jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.HMAC_SHA256));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, AlgorithmIdentifiers.HMAC_SHA256));
         jws.setPayloadCharEncoding(StringUtil.US_ASCII);
         jws.setCompactSerialization(detachedUnencoded);
         jws.setKey(jwk.getKey());

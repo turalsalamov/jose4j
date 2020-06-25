@@ -16,7 +16,7 @@
 
 package org.jose4j.jwe;
 
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
 import junit.framework.TestCase;
 
 import org.jose4j.jwa.AlgorithmConstraints;
@@ -104,8 +104,8 @@ public class EcdhKeyAgreementWithAesKeyWrapAlgorithmTest extends TestCase
         log.debug("JWE w/ {} & {}: {}", alg, enc, compactSerialization);
 
         JsonWebEncryption receiverJwe = new JsonWebEncryption();
-        receiverJwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, alg));
-        receiverJwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, enc));
+        receiverJwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, alg));
+        receiverJwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, enc));
         receiverJwe.setCompactSerialization(compactSerialization);
         receiverJwe.setKey(receiverJwk.getPrivateKey());
 

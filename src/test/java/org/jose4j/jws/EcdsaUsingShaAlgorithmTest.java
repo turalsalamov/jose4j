@@ -181,7 +181,7 @@ public class EcdsaUsingShaAlgorithmTest
     {
         JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJson);
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, alg));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, alg));
         jws.setCompactSerialization(cs);
         jws.setKey(jwk.getKey());
         Assert.assertTrue(jws.verifySignature());

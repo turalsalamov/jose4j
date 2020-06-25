@@ -259,7 +259,7 @@ public class JwtConsumerBuilder
 
     /**
      * Set the JWS algorithm constraints to be applied when processing the JWT.
-     * @param type the type of constraint i.e. blacklist or whitelist
+     * @param type the type of constraint i.e. block or permit
      * @param algorithms the algorithms to be allowed or disallowed depending on the constraint type
      * @return the same JwtConsumerBuilder
      */
@@ -271,7 +271,7 @@ public class JwtConsumerBuilder
 
     /**
      * Set the JWE algorithm constraints to be applied to key management when processing the JWT.
-     * @param type the type of constraint i.e. blacklist or whitelist
+     * @param type the type of constraint i.e. block or permit
      * @param algorithms the algorithms to be allowed or disallowed depending on the constraint type
      * @return the same JwtConsumerBuilder
      */
@@ -283,7 +283,7 @@ public class JwtConsumerBuilder
 
     /**
      * Set the JWE algorithm constraints to be applied to content encryption when processing the JWT.
-     * @param type the type of constraint i.e. blacklist or whitelist
+     * @param type the type of constraint i.e. block or permit
      * @param algorithms the algorithms to be allowed or disallowed depending on the constraint type
      * @return the same JwtConsumerBuilder
      */

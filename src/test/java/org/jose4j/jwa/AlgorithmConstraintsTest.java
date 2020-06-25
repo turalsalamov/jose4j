@@ -19,8 +19,8 @@ package org.jose4j.jwa;
 import org.jose4j.lang.InvalidAlgorithmException;
 import org.junit.Test;
 
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.BLACKLIST;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.BLOCK;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
 import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.*;
 import static org.jose4j.jws.AlgorithmIdentifiers.*;
 
@@ -29,51 +29,51 @@ import static org.jose4j.jws.AlgorithmIdentifiers.*;
 public class AlgorithmConstraintsTest
 {
     @Test
-    public void blacklist1() throws InvalidAlgorithmException
+    public void blockList1() throws InvalidAlgorithmException
     {
-        AlgorithmConstraints constraints = new AlgorithmConstraints(BLACKLIST, "bad", "badder");
+        AlgorithmConstraints constraints = new AlgorithmConstraints(BLOCK, "bad", "badder");
         constraints.checkConstraint("good");
     }
 
     @Test(expected = InvalidAlgorithmException.class)
-    public void blacklist2() throws InvalidAlgorithmException
+    public void blockList2() throws InvalidAlgorithmException
     {
-        AlgorithmConstraints constraints = new AlgorithmConstraints(BLACKLIST, "bad", "badder");
+        AlgorithmConstraints constraints = new AlgorithmConstraints(BLOCK, "bad", "badder");
         constraints.checkConstraint("bad");
     }
 
     @Test(expected = InvalidAlgorithmException.class)
-    public void blacklist3() throws InvalidAlgorithmException
+    public void blockList3() throws InvalidAlgorithmException
     {
-        AlgorithmConstraints constraints = new AlgorithmConstraints(BLACKLIST, "bad", "badder");
+        AlgorithmConstraints constraints = new AlgorithmConstraints(BLOCK, "bad", "badder");
         constraints.checkConstraint("badder");
     }
 
     @Test(expected = InvalidAlgorithmException.class)
-    public void blacklistNone() throws InvalidAlgorithmException
+    public void blockListNone() throws InvalidAlgorithmException
     {
-        AlgorithmConstraints constraints = new AlgorithmConstraints(BLACKLIST, NONE);
+        AlgorithmConstraints constraints = new AlgorithmConstraints(BLOCK, NONE);
         constraints.checkConstraint(NONE);
     }
 
     @Test(expected = InvalidAlgorithmException.class)
-    public void whitelist1() throws InvalidAlgorithmException
+    public void permitList1() throws InvalidAlgorithmException
     {
-        AlgorithmConstraints constraints = new AlgorithmConstraints(WHITELIST, "good", "gooder", "goodest");
+        AlgorithmConstraints constraints = new AlgorithmConstraints(PERMIT, "good", "gooder", "goodest");
         constraints.checkConstraint("bad");
     }
 
     @Test(expected = InvalidAlgorithmException.class)
-    public void whitelist2() throws InvalidAlgorithmException
+    public void permitList2() throws InvalidAlgorithmException
     {
-        AlgorithmConstraints constraints = new AlgorithmConstraints(WHITELIST, "good", "gooder", "goodest");
+        AlgorithmConstraints constraints = new AlgorithmConstraints(PERMIT, "good", "gooder", "goodest");
         constraints.checkConstraint("also bad");
     }
 
     @Test
-    public void whitelist3() throws InvalidAlgorithmException
+    public void permitList3() throws InvalidAlgorithmException
     {
-        AlgorithmConstraints constraints = new AlgorithmConstraints(WHITELIST, "good", "gooder", "goodest");
+        AlgorithmConstraints constraints = new AlgorithmConstraints(PERMIT, "good", "gooder", "goodest");
         constraints.checkConstraint("good");
         constraints.checkConstraint("gooder");
         constraints.checkConstraint("goodest");

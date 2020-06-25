@@ -156,13 +156,13 @@ public void nestedJwtRoundTripExample() throws JoseException, InvalidJwtExceptio
     // it typically advisable to require a (reasonable) expiration time, a trusted issuer, and
     // and audience that identifies your system as the intended recipient.
     // It is also typically good to allow only the expected algorithm(s) in the given context
-    AlgorithmConstraints jwsAlgConstraints = new AlgorithmConstraints(ConstraintType.WHITELIST,
+    AlgorithmConstraints jwsAlgConstraints = new AlgorithmConstraints(ConstraintType.PERMIT,
             AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
 
-    AlgorithmConstraints jweAlgConstraints = new AlgorithmConstraints(ConstraintType.WHITELIST,
+    AlgorithmConstraints jweAlgConstraints = new AlgorithmConstraints(ConstraintType.PERMIT,
             KeyManagementAlgorithmIdentifiers.ECDH_ES_A128KW);
 
-    AlgorithmConstraints jweEncConstraints = new AlgorithmConstraints(ConstraintType.WHITELIST,
+    AlgorithmConstraints jweEncConstraints = new AlgorithmConstraints(ConstraintType.PERMIT,
             ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
 
     JwtConsumer jwtConsumer = new JwtConsumerBuilder()
@@ -281,7 +281,7 @@ public void jwtRoundTripExample() throws JoseException, InvalidJwtException, Mal
             .setExpectedAudience("Audience") // to whom the JWT is intended for
             .setVerificationKey(rsaJsonWebKey.getKey()) // verify the signature with the public key
             .setJwsAlgorithmConstraints( // only allow the expected signature algorithm(s) in the given context
-                    ConstraintType.WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256) // which is only RS256 here
+                    ConstraintType.PERMIT, AlgorithmIdentifiers.RSA_USING_SHA256) // which is only RS256 here
             .build(); // create the JwtConsumer instance
 
     try
@@ -424,7 +424,7 @@ public void jwtRoundTripExample() throws JoseException, InvalidJwtException, Mal
     Key verificationKey = rsaJsonWebKey.getKey();
 
     // And set up the allowed/expected algorithms
-    AlgorithmConstraints algorithmConstraints = new AlgorithmConstraints(ConstraintType.WHITELIST,
+    AlgorithmConstraints algorithmConstraints = new AlgorithmConstraints(ConstraintType.PERMIT,
             AlgorithmIdentifiers.RSA_USING_SHA256, AlgorithmIdentifiers.RSA_USING_SHA384);
 
 
@@ -496,7 +496,7 @@ public void jwsVerificationExample() throws JoseException
     JsonWebSignature jws = new JsonWebSignature();
 
     // Set the algorithm constraints based on what is agreed upon or expected from the sender
-    jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256));
+    jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256));
     
     // Set the compact serialization on the JWS
     jws.setCompactSerialization(compactSerialization);
@@ -553,7 +553,7 @@ public void parseJwksAndVerifyJwsExample() throws JoseException
     JsonWebSignature jws = new JsonWebSignature();
 
     // Set the algorithm constraints based on what is agreed upon or expected from the sender
-    jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256));
+    jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256));
 
     // Set the compact serialization on the JWS
     jws.setCompactSerialization(compactSerialization);
@@ -638,9 +638,9 @@ public void jweRoundTripExample() throws JoseException
     JsonWebEncryption receiverJwe = new JsonWebEncryption();
 
     // Set the algorithm constraints based on what is agreed upon or expected from the sender
-    AlgorithmConstraints algConstraints = new AlgorithmConstraints(ConstraintType.WHITELIST, KeyManagementAlgorithmIdentifiers.DIRECT);
+    AlgorithmConstraints algConstraints = new AlgorithmConstraints(ConstraintType.PERMIT, KeyManagementAlgorithmIdentifiers.DIRECT);
     receiverJwe.setAlgorithmConstraints(algConstraints);
-    AlgorithmConstraints encConstraints = new AlgorithmConstraints(ConstraintType.WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
+    AlgorithmConstraints encConstraints = new AlgorithmConstraints(ConstraintType.PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
     receiverJwe.setContentEncryptionAlgorithmConstraints(encConstraints);
 
     // Set the compact serialization on new Json Web Encryption object
@@ -671,9 +671,9 @@ jwe.setKey(key);
 String serializedJwe = jwe.getCompactSerialization();
 System.out.println("Serialized Encrypted JWE: " + serializedJwe);
 jwe = new JsonWebEncryption();
-jwe.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST,
+jwe.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT,
         KeyManagementAlgorithmIdentifiers.A128KW));
-jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST,
+jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT,
         ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
 jwe.setKey(key);
 jwe.setCompactSerialization(serializedJwe);
@@ -740,7 +740,7 @@ public void RFC7797JwsUnencodedPayloadOption() throws Exception
 
     // Set the algorithm constraints based on what is agreed upon or expected from the sender
     verifierJws.setAlgorithmConstraints(new AlgorithmConstraints(
-            AlgorithmConstraints.ConstraintType.WHITELIST,
+            AlgorithmConstraints.ConstraintType.PERMIT,
             AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256));
 
     // The JWS with detached content is the compact serialization

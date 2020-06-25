@@ -147,7 +147,7 @@ public class JwtConsumerTest
                 .setExpectedIssuer("joe")
                 .setRequireExpirationTime()
                 .setEvaluationTime(NumericDate.fromSeconds(1300819343))
-                .setJwsAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLACKLIST, AlgorithmIdentifiers.NONE, AlgorithmIdentifiers.RSA_PSS_USING_SHA256))
+                .setJwsAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK, AlgorithmIdentifiers.NONE, AlgorithmIdentifiers.RSA_PSS_USING_SHA256))
                 .build();
         SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext, consumer);
 
@@ -454,9 +454,9 @@ public class JwtConsumerTest
                 .setExpectedAudience("canada")
                 .setExpectedIssuer("usa")
                 .setRequireExpirationTime()
-                .setJwsAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, AlgorithmIdentifiers.HMAC_SHA256))
-                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, KeyManagementAlgorithmIdentifiers.A128KW))
-                .setJweContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256))
+                .setJwsAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, AlgorithmIdentifiers.HMAC_SHA256))
+                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, KeyManagementAlgorithmIdentifiers.A128KW))
+                .setJweContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256))
                 .build();
         jwtClaims = consumer.processToClaims(jwt);
         Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
@@ -469,9 +469,9 @@ public class JwtConsumerTest
                 .setExpectedAudience("canada")
                 .setExpectedIssuer("usa")
                 .setRequireExpirationTime()
-                .setJwsAlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, AlgorithmIdentifiers.HMAC_SHA256)
-                .setJweAlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, KeyManagementAlgorithmIdentifiers.A128KW)
-                .setJweContentEncryptionAlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256)
+                .setJwsAlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, AlgorithmIdentifiers.HMAC_SHA256)
+                .setJweAlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, KeyManagementAlgorithmIdentifiers.A128KW)
+                .setJweContentEncryptionAlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256)
                 .build();
         jwtClaims = consumer.processToClaims(jwt);
         Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
@@ -485,7 +485,7 @@ public class JwtConsumerTest
                 .setExpectedAudience("canada")
                 .setExpectedIssuer("usa")
                 .setRequireExpirationTime()
-                .setJwsAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLACKLIST, AlgorithmIdentifiers.HMAC_SHA256))
+                .setJwsAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK, AlgorithmIdentifiers.HMAC_SHA256))
                 .build();
         SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext, consumer);
 
@@ -496,7 +496,7 @@ public class JwtConsumerTest
                 .setExpectedAudience("canada")
                 .setExpectedIssuer("usa")
                 .setRequireExpirationTime()
-                .setJwsAlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLACKLIST, AlgorithmIdentifiers.HMAC_SHA256)
+                .setJwsAlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK, AlgorithmIdentifiers.HMAC_SHA256)
                 .build();
         SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext, consumer);
 
@@ -507,7 +507,7 @@ public class JwtConsumerTest
                 .setExpectedAudience("canada")
                 .setExpectedIssuer("usa")
                 .setRequireExpirationTime()
-                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLACKLIST, KeyManagementAlgorithmIdentifiers.A128KW))
+                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK, KeyManagementAlgorithmIdentifiers.A128KW))
                 .build();
         SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext, consumer);
 
@@ -518,7 +518,7 @@ public class JwtConsumerTest
                 .setExpectedAudience("canada")
                 .setExpectedIssuer("usa")
                 .setRequireExpirationTime()
-                .setJweAlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLACKLIST, KeyManagementAlgorithmIdentifiers.A128KW)
+                .setJweAlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK, KeyManagementAlgorithmIdentifiers.A128KW)
                 .build();
         SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext, consumer);
 
@@ -529,7 +529,7 @@ public class JwtConsumerTest
                 .setExpectedAudience("canada")
                 .setExpectedIssuer("usa")
                 .setRequireExpirationTime()
-                .setJweContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLACKLIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256))
+                .setJweContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256))
                 .build();
         SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext, consumer);
 
@@ -540,7 +540,7 @@ public class JwtConsumerTest
                 .setExpectedAudience("canada")
                 .setExpectedIssuer("usa")
                 .setRequireExpirationTime()
-                .setJweContentEncryptionAlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLACKLIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256)
+                .setJweContentEncryptionAlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256)
                 .build();
         SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext, consumer);
 
@@ -2477,7 +2477,7 @@ public class JwtConsumerTest
                 .setVerificationKeyResolver(verificationKeyResolver)
                 .setJwsAlgorithmConstraints(AlgorithmConstraints.DISALLOW_NONE)
                 .setDecryptionKeyResolver(decryptionKeyResolver)
-                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLACKLIST,
+                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK,
                         KeyManagementAlgorithmIdentifiers.RSA1_5,
                         KeyManagementAlgorithmIdentifiers.PBES2_HS256_A128KW,
                         KeyManagementAlgorithmIdentifiers.PBES2_HS384_A192KW,
@@ -2689,7 +2689,7 @@ public class JwtConsumerTest
         jsonWebEncryption.setKeyIdHeaderValue(jwkRSA_b.getKeyId());
         jwe = jsonWebEncryption.getCompactSerialization();
         invalidJwtException = SimpleJwtConsumerTestHelp.expectProcessingFailure(jwe, jwtConsumer);
-        assertTrue(invalidJwtException.hasErrorCode(ErrorCodes.MISCELLANEOUS));  // b/c  RSA1_5 was blacklisted
+        assertTrue(invalidJwtException.hasErrorCode(ErrorCodes.MISCELLANEOUS));  // b/c  RSA1_5 was blocked
         jwtConsumer.setJweAlgorithmConstraints(AlgorithmConstraints.NO_CONSTRAINTS);   // allow RSA1_5
         invalidJwtException = SimpleJwtConsumerTestHelp.expectProcessingFailure(jwe, jwtConsumer);
         assertTrue(invalidJwtException.hasErrorCode(ErrorCodes.INTEGRITY_MISSING));  // now fail w/ no integrity

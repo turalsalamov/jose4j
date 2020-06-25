@@ -21,19 +21,40 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.BLACKLIST;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.BLOCK;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
 import static org.jose4j.jws.AlgorithmIdentifiers.NONE;
 
 /**
  */
 public class AlgorithmConstraints
 {
-    public static final AlgorithmConstraints NO_CONSTRAINTS = new AlgorithmConstraints(ConstraintType.BLACKLIST);
-    public static final AlgorithmConstraints DISALLOW_NONE = new AlgorithmConstraints(BLACKLIST, NONE);
-    public static final AlgorithmConstraints ALLOW_ONLY_NONE = new AlgorithmConstraints(WHITELIST, NONE);
+    public static final AlgorithmConstraints NO_CONSTRAINTS = new AlgorithmConstraints(ConstraintType.BLOCK);
+    public static final AlgorithmConstraints DISALLOW_NONE = new AlgorithmConstraints(BLOCK, NONE);
+    public static final AlgorithmConstraints ALLOW_ONLY_NONE = new AlgorithmConstraints(PERMIT, NONE);
 
-    public enum ConstraintType {WHITELIST, BLACKLIST}
+    public enum ConstraintType {
+        /**
+         *  @deprecated in favor of more inclusive terminology. Use {@link #PERMIT} instead.
+         */
+        @Deprecated WHITELIST,
+
+        /**
+         * @deprecated in favor of more inclusive terminology. Use {@link #BLOCK} instead.
+         */
+        @Deprecated BLACKLIST,
+
+        /**
+         * Allow only the indicated algorithms and no others.
+         * @since 0.7.2
+         */
+        PERMIT,
+
+        /**
+         * Block the indicated algorithms while allowing all others that are defined and supported.
+         * @since 0.7.2
+         */
+        BLOCK}
 
     private final ConstraintType type;
     private final Set<String> algorithms;
@@ -52,16 +73,18 @@ public class AlgorithmConstraints
     {
         switch (type)
         {
+            case PERMIT:
             case WHITELIST:
                 if (!algorithms.contains(algorithm))
                 {
-                    throw new InvalidAlgorithmException("'" +algorithm + "' is not a whitelisted algorithm.");
+                    throw new InvalidAlgorithmException("'" +algorithm + "' is not a permitted algorithm.");
                 }
                 break;
+            case BLOCK:
             case BLACKLIST:
                 if (algorithms.contains(algorithm))
                 {
-                    throw new InvalidAlgorithmException("'" + algorithm + "' is a blacklisted algorithm.");
+                    throw new InvalidAlgorithmException("'" + algorithm + "' is a blocked algorithm.");
                 }
                 break;
         }

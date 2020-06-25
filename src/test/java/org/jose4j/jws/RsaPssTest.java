@@ -156,7 +156,7 @@ public class RsaPssTest
         for (String cs : jwss)
         {
             JsonWebSignature jws = new JsonWebSignature();
-            jws.setAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, pssAlgs));
+            jws.setAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, pssAlgs));
             jws.setKey(ExampleRsaKeyFromJws.PUBLIC_KEY);
             jws.setCompactSerialization(cs);
 

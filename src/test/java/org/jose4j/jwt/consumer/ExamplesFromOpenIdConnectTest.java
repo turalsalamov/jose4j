@@ -79,7 +79,7 @@ public class ExamplesFromOpenIdConnectTest
         JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJson);
 
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, AlgorithmIdentifiers.RSA_USING_SHA256));
         jws.setCompactSerialization(requestObject);
         jws.setKey(jwk.getKey());
         assertThat(jws.verifySignature(), is(true));

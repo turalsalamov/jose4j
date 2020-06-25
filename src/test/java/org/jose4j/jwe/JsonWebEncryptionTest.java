@@ -30,8 +30,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.BLACKLIST;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.BLOCK;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
 import static org.jose4j.jwa.JceProviderTestSupport.RunnableTest;
 import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256;
 import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.DIRECT;
@@ -59,7 +59,7 @@ public class JsonWebEncryptionTest
                 "{\"kty\":\"oct\",\n" +
                 " \"k\":\"GawgguFyGrWKav7AX4VKUg\"\n" +
                 "}");
-        jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.A128KW));
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.A128KW));
         jwe.setCompactSerialization(jweCsFromAppdxA3);
         jwe.setKey(new AesKey(jsonWebKey.getKey().getEncoded()));
 
@@ -85,7 +85,7 @@ public class JsonWebEncryptionTest
                 "9hH0vgRfYgPnAHOd8stkvw";
 
         JsonWebEncryption jwe = new JsonWebEncryption();
-        jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.RSA1_5));
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA1_5));
         jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_2.getPrivateKey());
         jwe.setCompactSerialization(jweCsFromAppendixA2);
         String plaintextString = jwe.getPlaintextString();
@@ -117,7 +117,7 @@ public class JsonWebEncryptionTest
                                 "XFBoMYUZodetZdvTiFvSkQ";
 
                 JsonWebEncryption jwe = new JsonWebEncryption();
-                jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.RSA_OAEP));
+                jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA_OAEP));
                 jwe.setCompactSerialization(cs);
                 jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey());
                 String examplePlaintext = "The true sign of intelligence is not knowledge but imagination.";
@@ -139,7 +139,7 @@ public class JsonWebEncryptionTest
         String compactSerialization = jweForEncrypt.getCompactSerialization();
 
         JsonWebEncryption jweForDecrypt = new JsonWebEncryption();
-        jweForDecrypt.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.RSA1_5));
+        jweForDecrypt.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA1_5));
         jweForDecrypt.setCompactSerialization(compactSerialization);
         jweForDecrypt.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_2.getPrivateKey());
 
@@ -159,7 +159,7 @@ public class JsonWebEncryptionTest
         String compactSerialization = jweForEncrypt.getCompactSerialization();
 
         JsonWebEncryption jweForDecrypt = new JsonWebEncryption();
-        jweForDecrypt.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.RSA_OAEP));
+        jweForDecrypt.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA_OAEP));
         jweForDecrypt.setCompactSerialization(compactSerialization);
         jweForDecrypt.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_2.getPrivateKey());
 
@@ -183,8 +183,8 @@ public class JsonWebEncryptionTest
         String compactSerialization = jweForEncrypt.getCompactSerialization();
 
         JsonWebEncryption jweForDecrypt = new JsonWebEncryption();
-        jweForDecrypt.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, DIRECT));
-        jweForDecrypt.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AES_128_CBC_HMAC_SHA_256));
+        jweForDecrypt.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, DIRECT));
+        jweForDecrypt.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, AES_128_CBC_HMAC_SHA_256));
         jweForDecrypt.setCompactSerialization(compactSerialization);
         jweForDecrypt.setKey(key);
 
@@ -205,26 +205,26 @@ public class JsonWebEncryptionTest
     }
 
     @Test (expected = InvalidAlgorithmException.class)
-    public void testBlackListAlg() throws JoseException
+    public void testBlockListAlg() throws JoseException
     {
         String jwecs = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..LpJAcwq3RzCs-zPRQzT-jg.IO0ZwAhWnSF05dslZwaBKcHYOAKlSpt_l7Dl5ABrUS0.0KfkxQTFqTQjzfJIm8MNjg";
         JsonWebKey jsonWebKey = JsonWebKey.Factory.newJwk("{\"kty\":\"oct\",\"k\":\"I95jRMEyRvD0t3LRgL1GSWTgkX5jznuhX4mce9bYV_A\"}");
 
         JsonWebEncryption jwe = new JsonWebEncryption();
-        jwe.setAlgorithmConstraints(new AlgorithmConstraints(BLACKLIST, DIRECT));
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(BLOCK, DIRECT));
         jwe.setCompactSerialization(jwecs);
         jwe.setKey(jsonWebKey.getKey());
         jwe.getPayload();
     }
 
     @Test (expected = InvalidAlgorithmException.class)
-    public void testBlackListEncAlg() throws JoseException
+    public void testBlockListEncAlg() throws JoseException
     {
         String jwecs = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..LpJAcwq3RzCs-zPRQzT-jg.IO0ZwAhWnSF05dslZwaBKcHYOAKlSpt_l7Dl5ABrUS0.0KfkxQTFqTQjzfJIm8MNjg";
         JsonWebKey jsonWebKey = JsonWebKey.Factory.newJwk("{\"kty\":\"oct\",\"k\":\"I95jRMEyRvD0t3LRgL1GSWTgkX5jznuhX4mce9bYV_A\"}");
 
         JsonWebEncryption jwe = new JsonWebEncryption();
-        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(BLACKLIST, AES_128_CBC_HMAC_SHA_256));
+        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(BLOCK, AES_128_CBC_HMAC_SHA_256));
         jwe.setCompactSerialization(jwecs);
         jwe.setKey(jsonWebKey.getKey());
         jwe.getPayload();

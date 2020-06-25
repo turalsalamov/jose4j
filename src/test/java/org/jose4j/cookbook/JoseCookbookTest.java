@@ -21,7 +21,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -472,7 +472,7 @@ public class JoseCookbookTest
 
         // verify consuming the JWS
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, alg));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, alg));
         jws.setCompactSerialization(jwsCompactSerialization);
         JsonWebKey jwk = JsonWebKey.Factory.newJwk(figure3RsaJwkJsonString);
         jws.setKey(jwk.getKey());
@@ -523,7 +523,7 @@ public class JoseCookbookTest
                         "6GYmJUAfmWjwZ6oD4ifKo8DYM-X72Eaw";
 
                 JsonWebSignature jws = new JsonWebSignature();
-                jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, AlgorithmIdentifiers.RSA_PSS_USING_SHA384));
+                jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, AlgorithmIdentifiers.RSA_PSS_USING_SHA384));
                 jws.setCompactSerialization(cs);
                 jws.setKey(jwk.getPublicKey());
                 assertThat(jws.verifySignature(), is(true));
@@ -577,7 +577,7 @@ public class JoseCookbookTest
         JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJson);
 
         jws.setKey(jwk.getKey());
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, alg));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, alg));
         assertThat(jws.getUnverifiedPayload(), equalTo(jwsPayload));
 
         assertThat(jws.verifySignature(), is(true));
@@ -615,7 +615,7 @@ public class JoseCookbookTest
 
         // verify consuming the JWS
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, alg));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, alg));
         jws.setCompactSerialization(jwsCompactSerialization);
         JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJson);
         jws.setKey(jwk.getKey());
@@ -652,7 +652,7 @@ public class JoseCookbookTest
                 "s0h6KThzkfBBBkLspW1h84VsJZFTsPPqMDA7g1Md7p0";
 
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, AlgorithmIdentifiers.HMAC_SHA256));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, AlgorithmIdentifiers.HMAC_SHA256));
         jws.setCompactSerialization(detachedCs);
         JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJsonString);
         jws.setKey(jwk.getKey());
@@ -765,8 +765,8 @@ public class JoseCookbookTest
 
         // verify that we can decrypt it
         JsonWebEncryption jwe = new JsonWebEncryption();
-        jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.RSA1_5));
-        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA1_5));
+        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
         jwe.setCompactSerialization(jweCompactSerialization);
         jwe.setKey(jwk.getPrivateKey());
         assertThat(jwePlaintext, equalTo(jwe.getPlaintextString()));
@@ -836,8 +836,8 @@ public class JoseCookbookTest
 
                 // verify that we can decrypt the encrypted key
                 JsonWebEncryption jwe = new JsonWebEncryption();
-                jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.RSA_OAEP));
-                jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_256_GCM));
+                jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA_OAEP));
+                jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_256_GCM));
                 jwe.setCompactSerialization(jweCompactSerialization);
                 jwe.setKey(jwk.getPrivateKey());
 
@@ -916,8 +916,8 @@ public class JoseCookbookTest
         JsonWebEncryption jwe = new JsonWebEncryption();
         jwe.setCompactSerialization(exampleCompactSerialization);
         jwe.setKey(new PbkdfKey(password));
-        jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.PBES2_HS512_A256KW));
-        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.PBES2_HS512_A256KW));
+        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
         assertThat(plaintext, equalTo(jwe.getPlaintextString()));
 
         // verify that we can reproduce it from the inputs
@@ -975,8 +975,8 @@ public class JoseCookbookTest
 
         // verify that we can decrypt it
         JsonWebEncryption jwe = new JsonWebEncryption();
-        jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.PBES2_HS256_A128KW));
-        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.PBES2_HS256_A128KW));
+        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
         jwe.setCompactSerialization(exampleCompactSerialization);
         jwe.setKey(new PbkdfKey(password));
         assertThat(plaintext, equalTo(jwe.getPlaintextString()));
@@ -1050,8 +1050,8 @@ public class JoseCookbookTest
                 final PublicJsonWebKey jwk = PublicJsonWebKey.Factory.newPublicJwk(jwkJsonString);
 
                 JsonWebEncryption jwe = new JsonWebEncryption();
-                jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.ECDH_ES_A128KW));
-                jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_GCM));
+                jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.ECDH_ES_A128KW));
+                jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_GCM));
 
                 jwe.setCompactSerialization(jweCompactSerialization);
                 jwe.setKey(jwk.getPrivateKey());
@@ -1100,8 +1100,8 @@ public class JoseCookbookTest
 
         // verify that we can decrypt it
         JsonWebEncryption jwe = new JsonWebEncryption();
-        jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.ECDH_ES));
-        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.ECDH_ES));
+        jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
         jwe.setCompactSerialization(exampleCompactSerialization);
         jwe.setKey(jwk.getPrivateKey());
         assertThat(jwePlaintext, equalTo(jwe.getPlaintextString()));
@@ -1145,8 +1145,8 @@ public class JoseCookbookTest
 
                 // decrypt the example
                 JsonWebEncryption jwe = new JsonWebEncryption();
-                jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.DIRECT));
-                jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_GCM));
+                jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.DIRECT));
+                jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_GCM));
                 jwe.setKey(jwk.getKey());
                 jwe.setCompactSerialization(cs);
                 assertThat(jwePlaintext, equalTo(jwe.getPlaintextString()));
@@ -1231,8 +1231,8 @@ public class JoseCookbookTest
 
                 // verify decrypting it
                 jwe = new JsonWebEncryption();
-                jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.A256GCMKW));
-                jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
+                jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.A256GCMKW));
+                jwe.setContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256));
 
                 jwe.setKey(jwk.getKey());
                 jwe.setCompactSerialization(cs);
@@ -1283,7 +1283,7 @@ public class JoseCookbookTest
                         "   }\n");
 
                 JsonWebEncryption jwe = new JsonWebEncryption();
-                jwe.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, KeyManagementAlgorithmIdentifiers.A128KW));
+                jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.A128KW));
                 jwe.setKey(jwk.getKey());
                 jwe.setCompactSerialization(cs);
                 assertThat(jwePlaintext, equalTo(jwe.getPlaintextString()));
@@ -1408,7 +1408,7 @@ public class JoseCookbookTest
                 PublicJsonWebKey sigJwk = PublicJsonWebKey.Factory.newPublicJwk(sigJwkJson);
 
                 JsonWebSignature jws = new JsonWebSignature();
-                jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.WHITELIST, AlgorithmIdentifiers.RSA_PSS_USING_SHA256));
+                jws.setAlgorithmConstraints(new AlgorithmConstraints(ConstraintType.PERMIT, AlgorithmIdentifiers.RSA_PSS_USING_SHA256));
                 jws.setCompactSerialization(jwePayload);
                 jws.setKey(sigJwk.getPublicKey());
                 assertTrue(jws.verifySignature());

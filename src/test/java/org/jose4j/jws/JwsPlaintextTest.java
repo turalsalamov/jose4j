@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 import java.security.Key;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.BLACKLIST;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.BLOCK;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
 import static org.jose4j.jws.AlgorithmIdentifiers.NONE;
 import static org.junit.Assert.*;
 
@@ -89,7 +89,7 @@ public class JwsPlaintextTest
     public void testExampleVerifyButNoneNotAllowed() throws JoseException
     {
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(BLACKLIST, NONE));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(BLOCK, NONE));
         jws.setCompactSerialization(JWS);
         jws.verifySignature();
     }
@@ -98,7 +98,7 @@ public class JwsPlaintextTest
     public void testExampleVerifyWithOnlyNoneAllowed() throws JoseException
     {
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, NONE));
+        jws.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, NONE));
         jws.setCompactSerialization(JWS);
         assertThat(jws.verifySignature(), is(true));
     }
