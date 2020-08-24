@@ -2,6 +2,7 @@ package org.jose4j.jwe;
 
 import org.jose4j.keys.ExampleRsaJwksFromJwe;
 import org.jose4j.lang.IntegrityException;
+import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -17,7 +18,7 @@ public class NegativeJweWrappingTest
 {
     private static final Logger log = LoggerFactory.getLogger(NegativeJweWrappingTest.class);
 
-    public static final String PAYLOAD = "https://tools.ietf.org/html/draft-ietf-jose-json-web-encryption-39#section-11.5";
+    private static final String PAYLOAD = "https://tools.ietf.org/html/draft-ietf-jose-json-web-encryption-39#section-11.5";
 
     @Test
     public void hrm() throws Exception
@@ -129,7 +130,7 @@ public class NegativeJweWrappingTest
             String payload = jwe.getPayload();
             Assert.fail("shouldn't have decrypted but got payload: " + payload);
         }
-        catch (IntegrityException e)
+        catch (IntegrityException | InvalidKeyException e)
         {
             log.debug("Expected exception processing modified JWE {}", e.toString());
         }

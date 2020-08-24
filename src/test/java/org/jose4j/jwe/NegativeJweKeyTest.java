@@ -18,12 +18,14 @@ package org.jose4j.jwe;
 
 import junit.framework.TestCase;
 
+import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.keys.AesKey;
 import org.jose4j.keys.ExampleEcKeysFromJws;
 import org.jose4j.keys.ExampleRsaJwksFromJwe;
 import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -387,5 +389,30 @@ public class NegativeJweKeyTest extends TestCase
     private AesKey aesKey(int byteLength)
     {
         return new AesKey(new byte[byteLength]);
+    }
+
+
+    @Test
+    public void testTryDecryptWithTestPlainTextFromJOSECPP() throws JoseException
+    {
+        /*
+         from https://bitbucket.org/b_c/jose4j/issues/170/a128gcmkw-with-a128gcm-content-encryption
+         using A128GCMKW key wrapping w/ A128GCM content encryption, but due to a bug code that produced this JWE,
+         the key-wrapped CEK is 32 bytes long. The C++ tests worked because I choose the A128GCM content encryption
+         and ignore the last 16 bytes of the CEK.
+
+         Here we are testing that such input is rejected.
+         */
+
+        String joseKey ="{\"k\":\"XIy6sXcvHiiS0QHePnb58w\",\"kty\":\"oct\"}";
+        String jwe ="eyJhbGciOiJBMTI4R0NNS1ciLCJlbmMiOiJBMTI4R0NNIiwiaXYiOiJlVmZjaXdlOWNKczdrMUpMIiwidGFnIjoiaklVUEpYSThfRmZYdmtSMi05UWkyUSJ9" +
+                ".KkzMXPRJcPtnHC9X-IFe3SvqQOvBGTPyp6v5zgN4zls" +
+                ".QzaKcPLWj8A1wY7W" +
+                ".L0iBWem899_gOBjN_lHAHkJDlOU66jJXHP6wjCG7zsfRqQa9wW8JvP1EeE7yAsZ4zNSSDdCaIiSUFKcQbrPvxA" +
+                ".b-s97SD01_G52wtnd8Q2HA";
+
+        JsonWebKey jwk = JsonWebKey.Factory.newJwk(joseKey);
+
+        expectBadKeyFailOnConsume(jwe, jwk.getKey());
     }
 }

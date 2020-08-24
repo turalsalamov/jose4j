@@ -17,7 +17,6 @@
 package org.jose4j.jwe;
 
 import org.jose4j.base64url.Base64Url;
-import org.jose4j.jwa.Algorithm;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmFactory;
 import org.jose4j.jwa.AlgorithmFactoryFactory;
@@ -25,7 +24,9 @@ import org.jose4j.jwx.CompactSerializer;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.Headers;
 import org.jose4j.jwx.JsonWebStructure;
+import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.InvalidAlgorithmException;
+import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
 import org.jose4j.lang.StringUtil;
 import org.jose4j.zip.CompressionAlgorithm;
@@ -208,11 +209,26 @@ public class JsonWebEncryption extends JsonWebStructure
 
         ContentEncryptionParts contentEncryptionParts = new ContentEncryptionParts(iv, ciphertext, getIntegrity());
         byte[] aad = getEncodedHeaderAsciiBytesForAdditionalAuthenticatedData();
-        byte[] decrypted = contentEncryptionAlg.decrypt(contentEncryptionParts, aad, cek.getEncoded(), getHeaders(), getProviderCtx());
+
+        byte[] rawCek = cek.getEncoded();
+        checkCek(contentEncryptionAlg, contentEncryptionKeyDesc, rawCek);
+        byte[] decrypted = contentEncryptionAlg.decrypt(contentEncryptionParts, aad, rawCek, getHeaders(), getProviderCtx());
 
         decrypted = decompress(getHeaders(), decrypted);
 
         setPlaintext(decrypted);
+    }
+
+    private void checkCek(ContentEncryptionAlgorithm contentEncryptionAlg, ContentEncryptionKeyDescriptor contentEncryptionKeyDesc, byte[] rawCek)
+            throws InvalidKeyException
+    {
+        int contentEncryptionKeyByteLength = contentEncryptionKeyDesc.getContentEncryptionKeyByteLength();
+        if (rawCek.length != contentEncryptionKeyByteLength)
+        {
+            throw new InvalidKeyException(ByteUtil.bitLength(rawCek)
+                    + " bit content encryption key is not the correct size for the " + contentEncryptionAlg.getAlgorithmIdentifier()
+                    + " content encryption algorithm (" + ByteUtil.bitLength(contentEncryptionKeyByteLength) + ").");
+        }
     }
 
     public byte[] getEncryptedKey()
@@ -279,6 +295,7 @@ public class JsonWebEncryption extends JsonWebStructure
 
         plaintextBytes = compress(getHeaders(), plaintextBytes);
 
+        checkCek(contentEncryptionAlg, contentEncryptionKeyDesc, contentEncryptionKey);
         ContentEncryptionParts contentEncryptionParts = contentEncryptionAlg.encrypt(plaintextBytes, aad, contentEncryptionKey, getHeaders(), getIv(), getProviderCtx());
         setIv(contentEncryptionParts.getIv());
         ciphertext = contentEncryptionParts.getCiphertext();
