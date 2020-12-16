@@ -18,6 +18,7 @@ package org.jose4j.jwe;
 
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.Headers;
@@ -60,11 +61,17 @@ public class EcdhKeyAgreementWithAesKeyWrapAlgorithm extends AlgorithmInfo imple
         return keyWrap.manageForEncrypt(agreedKey, cekDesc, headers, cekOverride, providerContext);
     }
 
-    public Key manageForDecrypt(Key managementKey, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext)
+    public CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext) throws JoseException
+    {
+        return ecdh.prepareForDecrypt(managementKey, headers, providerContext);
+    }
+
+    public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext)
             throws JoseException
     {
-        Key agreedKey = ecdh.manageForDecrypt(managementKey, ByteUtil.EMPTY_BYTES, keyWrapKeyDescriptor, headers, providerContext);
-        return keyWrap.manageForDecrypt(agreedKey, encryptedKey, cekDesc, headers, providerContext);
+        Key agreedKey = ecdh.manageForDecrypt(cryptoPrimitive, ByteUtil.EMPTY_BYTES, keyWrapKeyDescriptor, headers, providerContext);
+        CryptoPrimitive wrapCryptoPrimitive = keyWrap.prepareForDecrypt(agreedKey, headers, providerContext);
+        return keyWrap.manageForDecrypt(wrapCryptoPrimitive, encryptedKey, cekDesc, headers, providerContext);
     }
 
     @Override

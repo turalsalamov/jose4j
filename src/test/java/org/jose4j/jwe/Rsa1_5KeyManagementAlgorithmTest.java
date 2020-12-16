@@ -19,6 +19,7 @@ package org.jose4j.jwe;
 import junit.framework.TestCase;
 import org.jose4j.base64url.Base64Url;
 import org.jose4j.jca.ProviderContextTest;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.keys.AesKey;
 import org.jose4j.keys.ExampleRsaJwksFromJwe;
 import org.jose4j.lang.ByteUtil;
@@ -49,7 +50,8 @@ public class Rsa1_5KeyManagementAlgorithmTest extends TestCase
         PrivateKey privateKey = ExampleRsaJwksFromJwe.APPENDIX_A_2.getPrivateKey();
         ContentEncryptionAlgorithm contentEncryptionAlgorithm = new AesCbcHmacSha2ContentEncryptionAlgorithm.Aes128CbcHmacSha256();
         ContentEncryptionKeyDescriptor cekDesc = contentEncryptionAlgorithm.getContentEncryptionKeyDescriptor();
-        Key key = keyManagementAlgorithm.manageForDecrypt(privateKey, encryptedKey, cekDesc, null, ProviderContextTest.EMPTY_CONTEXT);
+        CryptoPrimitive cryptoPrimitive = keyManagementAlgorithm.prepareForDecrypt(privateKey, null, ProviderContextTest.EMPTY_CONTEXT);
+        Key key = keyManagementAlgorithm.manageForDecrypt(cryptoPrimitive, encryptedKey, cekDesc, null, ProviderContextTest.EMPTY_CONTEXT);
 
         byte[] cekBytes = ByteUtil.convertUnsignedToSignedTwosComp(new int[]{4, 211, 31, 197, 84, 157, 252, 254, 11, 100, 157, 250, 63, 170, 106,
                 206, 107, 124, 212, 45, 111, 107, 9, 219, 200, 177, 0, 240, 143, 156,
@@ -69,7 +71,8 @@ public class Rsa1_5KeyManagementAlgorithmTest extends TestCase
         byte[] encryptedKey = contentEncryptionKeys.getEncryptedKey();
 
         PrivateKey privateKey = ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey();
-        Key key = rsa.manageForDecrypt(privateKey, encryptedKey, cekDesc, null, ProviderContextTest.EMPTY_CONTEXT);
+        CryptoPrimitive cryptoPrimitive = rsa.prepareForDecrypt(privateKey, null, ProviderContextTest.EMPTY_CONTEXT);
+        Key key = rsa.manageForDecrypt(cryptoPrimitive, encryptedKey, cekDesc, null, ProviderContextTest.EMPTY_CONTEXT);
 
         byte[] cek = contentEncryptionKeys.getContentEncryptionKey();
         assertTrue(Arrays.equals(cek, key.getEncoded()));

@@ -46,7 +46,7 @@ public class SimpleAeadCipher
         this.tagByteLength = tagByteLength;
     }
 
-    private Cipher getInitialisedCipher(Key key, byte[] iv, int mode, String provider) throws JoseException
+    public Cipher getInitialisedCipher(Key key, byte[] iv, int mode, String provider) throws JoseException
     {
         Cipher cipher = CipherUtil.getCipher(algorithm, provider);
         try
@@ -98,6 +98,11 @@ public class SimpleAeadCipher
     public byte[] decrypt(Key key, byte[] iv, byte[] ciphertext, byte[] tag, byte[] aad, String provider) throws JoseException
     {
         Cipher cipher = getInitialisedCipher(key, iv, Cipher.DECRYPT_MODE, provider);
+        return decrypt(ciphertext, tag, aad, cipher);
+
+    }
+
+    public byte[] decrypt(byte[] ciphertext, byte[] tag, byte[] aad, Cipher cipher) throws JoseException {
         updateAad(cipher, aad);
 
         try
@@ -108,7 +113,6 @@ public class SimpleAeadCipher
         {
             throw new JoseException(e.toString(), e);
         }
-
     }
 
     public boolean isAvailable(Logger log, int keyByteLength, int ivByteLength, String joseAlg)

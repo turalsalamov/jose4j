@@ -18,6 +18,7 @@ package org.jose4j.jwe;
 
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.Algorithm;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwx.Headers;
 import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
@@ -29,9 +30,8 @@ import java.security.Key;
 public interface KeyManagementAlgorithm extends Algorithm
 {
     ContentEncryptionKeys manageForEncrypt(Key managementKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, byte[] cekOverride, ProviderContext providerContext) throws JoseException;
-//    ContentEncryptionKeys manageForEncrypt(Key managementKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, byte[] cekOverride) throws JoseException;
-    Key manageForDecrypt(Key managementKey, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException;
-//    Key manageForDecrypt(Key managementKey, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers) throws JoseException;
+    CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext) throws JoseException;
+    Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException;
 
     void validateEncryptionKey(Key managementKey, ContentEncryptionAlgorithm contentEncryptionAlg) throws InvalidKeyException;
     void validateDecryptionKey(Key managementKey, ContentEncryptionAlgorithm contentEncryptionAlg) throws InvalidKeyException;

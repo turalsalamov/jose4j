@@ -19,6 +19,7 @@ package org.jose4j.jwe;
 import org.jose4j.base64url.Base64Url;
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwe.kdf.PasswordBasedKeyDerivationFunction2;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.Headers;
@@ -96,14 +97,22 @@ public class Pbes2HmacShaWithAesKeyWrapAlgorithm  extends AlgorithmInfo implemen
     }
 
     @Override
-    public Key manageForDecrypt(Key managementKey, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+    public CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext) throws JoseException
     {
         Long iterationCount = headers.getLongHeaderValue(HeaderParameterNames.PBES2_ITERATION_COUNT);
         String saltInputString = headers.getStringHeaderValue(HeaderParameterNames.PBES2_SALT_INPUT);
         Base64Url base64Url = new Base64Url();
         byte[] saltInput = base64Url.base64UrlDecode(saltInputString);
         Key derivedKey = deriveKey(managementKey, iterationCount, saltInput, providerContext);
-        return keyWrap.manageForDecrypt(derivedKey, encryptedKey, cekDesc, headers, providerContext);
+        return new CryptoPrimitive(derivedKey);
+    }
+
+    @Override
+    public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+    {
+        Key derivedKey = cryptoPrimitive.getKey();
+        CryptoPrimitive wrapCryptoPrimitive = keyWrap.prepareForDecrypt(derivedKey, headers, providerContext);
+        return keyWrap.manageForDecrypt(wrapCryptoPrimitive, encryptedKey, cekDesc, headers, providerContext);
     }
 
     private Key deriveKey(Key managementKey, Long iterationCount, byte[] saltInput, ProviderContext providerContext) throws JoseException

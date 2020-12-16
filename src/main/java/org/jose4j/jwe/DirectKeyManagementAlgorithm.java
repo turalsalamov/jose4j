@@ -18,6 +18,7 @@ package org.jose4j.jwe;
 
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.OctetSequenceJsonWebKey;
 import org.jose4j.jwx.Headers;
 import org.jose4j.jwx.KeyValidationSupport;
@@ -46,8 +47,15 @@ public class DirectKeyManagementAlgorithm extends AlgorithmInfo implements KeyMa
         return new ContentEncryptionKeys(cekBytes, ByteUtil.EMPTY_BYTES);
     }
 
-    public Key manageForDecrypt(Key managementKey, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+    public CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext)
     {
+        return new CryptoPrimitive(managementKey);
+    }
+
+
+    public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+    {
+        Key managementKey = cryptoPrimitive.getKey();
         if (encryptedKey.length != 0)
         {
             throw new InvalidKeyException("An empty octet sequence is to be used as the JWE Encrypted Key value when utilizing " +

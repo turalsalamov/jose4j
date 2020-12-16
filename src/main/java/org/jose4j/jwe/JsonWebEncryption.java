@@ -20,6 +20,7 @@ import org.jose4j.base64url.Base64Url;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmFactory;
 import org.jose4j.jwa.AlgorithmFactoryFactory;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwx.CompactSerializer;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.Headers;
@@ -32,6 +33,8 @@ import org.jose4j.lang.StringUtil;
 import org.jose4j.zip.CompressionAlgorithm;
 import org.jose4j.zip.CompressionAlgorithmIdentifiers;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyAgreement;
 import java.security.Key;
 
 /**
@@ -52,6 +55,8 @@ public class JsonWebEncryption extends JsonWebStructure
     byte[] contentEncryptionKey;
 
     private AlgorithmConstraints contentEncryptionAlgorithmConstraints = AlgorithmConstraints.NO_CONSTRAINTS;
+
+    private CryptoPrimitive decryptingPrimitive;
 
     public void setPlainTextCharEncoding(String plaintextCharEncoding)
     {
@@ -191,6 +196,38 @@ public class JsonWebEncryption extends JsonWebStructure
         setIntegrity(tag);
     }
 
+    /**
+     * Create, initialize and return the {@link CryptoPrimitive} that
+     * this JWE instance will use for agreement or decryption of the content encryption key.
+     * This can optionally be called after setting the key (and maybe ProviderContext) but before getting the
+     * payload (which is when the decryption magic happens).
+     * This method provides access to the underlying primitive instance (e.g. a {@link Cipher}), which allows execution of
+     * the operation to be gated by some approval or authorization.
+     * For example, signing on Android with a key that was set to require user authentication when created needs a biometric
+     * prompt to allow the signature to execute with the key.
+     *
+     * @return a CryptoPrimitive containing either a {@link Cipher}, {@link KeyAgreement}, etc., or null
+     * @throws JoseException if an error condition is encountered during the initialization process
+     */
+    public CryptoPrimitive prepareDecryptingPrimitive() throws JoseException
+    {
+        decryptingPrimitive = createDecryptingPrimitive();
+        return decryptingPrimitive;
+    }
+
+    private CryptoPrimitive createDecryptingPrimitive() throws JoseException
+    {
+        KeyManagementAlgorithm keyManagementModeAlg = getKeyManagementModeAlgorithm();
+        Key managmentKey = getKey();
+        if (isDoKeyValidation())
+        {
+            ContentEncryptionAlgorithm contentEncryptionAlg = getContentEncryptionAlgorithm();
+            keyManagementModeAlg.validateDecryptionKey(managmentKey, contentEncryptionAlg);
+        }
+
+        return keyManagementModeAlg.prepareForDecrypt(managmentKey, headers, getProviderCtx());
+    }
+
     private void decrypt() throws JoseException
     {
         KeyManagementAlgorithm keyManagementModeAlg = getKeyManagementModeAlgorithm();
@@ -198,14 +235,11 @@ public class JsonWebEncryption extends JsonWebStructure
 
         ContentEncryptionKeyDescriptor contentEncryptionKeyDesc = contentEncryptionAlg.getContentEncryptionKeyDescriptor();
 
-        if (isDoKeyValidation())
-        {
-            keyManagementModeAlg.validateDecryptionKey(getKey(), contentEncryptionAlg);
-        }
-
         checkCrit();
 
-        Key cek = keyManagementModeAlg.manageForDecrypt(getKey(), getEncryptedKey(), contentEncryptionKeyDesc, getHeaders(), getProviderCtx());
+        CryptoPrimitive cryptoPrimitive = (decryptingPrimitive == null) ? createDecryptingPrimitive() : decryptingPrimitive;
+
+        Key cek = keyManagementModeAlg.manageForDecrypt(cryptoPrimitive, getEncryptedKey(), contentEncryptionKeyDesc, getHeaders(), getProviderCtx());
 
         ContentEncryptionParts contentEncryptionParts = new ContentEncryptionParts(iv, ciphertext, getIntegrity());
         byte[] aad = getEncodedHeaderAsciiBytesForAdditionalAuthenticatedData();

@@ -18,6 +18,7 @@ package org.jose4j.jwe;
 import org.jose4j.base64url.Base64Url;
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.OctetSequenceJsonWebKey;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.Headers;
@@ -27,6 +28,7 @@ import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
 
+import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.security.SecureRandom;
@@ -84,18 +86,28 @@ public class AesGcmKeyEncryptionAlgorithm extends AlgorithmInfo implements KeyMa
         return new ContentEncryptionKeys(cek, encryptedKey);
     }
 
-    @Override
-    public Key manageForDecrypt(Key managementKey, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+    public CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext) throws JoseException
     {
         Base64Url base64Url = new Base64Url();
         String encodedIv = headers.getStringHeaderValue(HeaderParameterNames.INITIALIZATION_VECTOR);
         byte[] iv = base64Url.base64UrlDecode(encodedIv);
 
+        String cipherProvider = providerContext.getSuppliedKeyProviderContext().getCipherProvider();
+        Cipher cipher = simpleAeadCipher.getInitialisedCipher(managementKey, iv, Cipher.DECRYPT_MODE, cipherProvider);
+
+        return new CryptoPrimitive(cipher);
+    }
+
+    @Override
+    public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+    {
+        Base64Url base64Url = new Base64Url();
         String encodedTag = headers.getStringHeaderValue(HeaderParameterNames.AUTHENTICATION_TAG);
         byte[] tag = base64Url.base64UrlDecode(encodedTag);
 
-        String cipherProvider = providerContext.getSuppliedKeyProviderContext().getCipherProvider();
-        byte[] cek = simpleAeadCipher.decrypt(managementKey, iv, encryptedKey, tag, null, cipherProvider);
+        Cipher cipher = cryptoPrimitive.getCipher();
+        byte[] cek = simpleAeadCipher.decrypt(encryptedKey, tag, null, cipher);
+
         return new SecretKeySpec(cek, cekDesc.getContentEncryptionKeyAlgorithm());
     }
 

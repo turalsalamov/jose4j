@@ -19,6 +19,7 @@ package org.jose4j.jwe;
 import junit.framework.TestCase;
 import org.jose4j.base64url.Base64Url;
 import org.jose4j.jca.ProviderContextTest;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.Headers;
@@ -77,8 +78,8 @@ public class EcdhKeyAgreementAlgorithmTest extends TestCase
 
         Headers receivedHeaders = new Headers();
         receivedHeaders.setFullHeaderAsJsonString(headers.getFullHeaderAsJsonString());
-
-        Key key = ecdhKeyAgreementAlgorithm.manageForDecrypt(receiverJwk.getPrivateKey(), null, cekDesc, receivedHeaders, ProviderContextTest.EMPTY_CONTEXT);
+        CryptoPrimitive cryptoPrimitive = ecdhKeyAgreementAlgorithm.prepareForDecrypt(receiverJwk.getPrivateKey(), receivedHeaders, ProviderContextTest.EMPTY_CONTEXT);
+        Key key = ecdhKeyAgreementAlgorithm.manageForDecrypt(cryptoPrimitive, null, cekDesc, receivedHeaders, ProviderContextTest.EMPTY_CONTEXT);
         assertEquals("VqqN6vgjbSBcIijNcacQGg", base64Url.base64UrlEncode(key.getEncoded()));
     }
 
@@ -130,8 +131,8 @@ public class EcdhKeyAgreementAlgorithmTest extends TestCase
         EcdhKeyAgreementAlgorithm ecdhKeyAgreementAlgorithm = new EcdhKeyAgreementAlgorithm();
 
         ContentEncryptionKeyDescriptor cekDesc = new ContentEncryptionKeyDescriptor(ByteUtil.byteLength(256), AesKey.ALGORITHM);
-
-        Key derivedKey = ecdhKeyAgreementAlgorithm.manageForDecrypt(receiverJwk.getPrivateKey(), null, cekDesc, headers, ProviderContextTest.EMPTY_CONTEXT);
+        CryptoPrimitive cryptoPrimitive = ecdhKeyAgreementAlgorithm.prepareForDecrypt(receiverJwk.getPrivateKey(), headers, ProviderContextTest.EMPTY_CONTEXT);
+        Key derivedKey = ecdhKeyAgreementAlgorithm.manageForDecrypt(cryptoPrimitive, null, cekDesc, headers, ProviderContextTest.EMPTY_CONTEXT);
         assertEquals("bqXVMd1yd5E08Wy2T1U9m9Q5DEjj7-BYIyWUgazzZkA", Base64Url.encode(derivedKey.getEncoded()));
     }
 

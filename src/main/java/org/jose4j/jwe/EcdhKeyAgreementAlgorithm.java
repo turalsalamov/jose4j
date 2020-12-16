@@ -19,6 +19,7 @@ package org.jose4j.jwe;
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmAvailability;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwe.kdf.KdfUtil;
 import org.jose4j.jwk.EcJwkGenerator;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
@@ -89,14 +90,21 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
         return new ContentEncryptionKeys(derivedKey, null);
     }
 
-    public Key manageForDecrypt(Key managementKey, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers,  ProviderContext providerContext) throws JoseException
+    public CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext) throws JoseException
     {
         String keyFactoryProvider = providerContext.getGeneralProviderContext().getKeyFactoryProvider();
         JsonWebKey ephemeralJwk = headers.getPublicJwkHeaderValue(HeaderParameterNames.EPHEMERAL_PUBLIC_KEY, keyFactoryProvider);
         ECPublicKey ephemeralPublicKey = (ECPublicKey) ephemeralJwk.getKey();
         ECPrivateKey privateKey = (ECPrivateKey) managementKey;
         checkPointIsOnCurve(ephemeralPublicKey, privateKey);
-        byte[] z = generateEcdhSecret((ECPrivateKey) managementKey, ephemeralPublicKey, providerContext);
+        KeyAgreement keyAgreement = createKeyAgreement(privateKey, ephemeralPublicKey, providerContext);
+        return new CryptoPrimitive(keyAgreement);
+    }
+
+    public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers,  ProviderContext providerContext) throws JoseException
+    {
+        KeyAgreement keyAgreement = cryptoPrimitive.getKeyAgreement();
+        byte[] z = keyAgreement.generateSecret();
         byte[] derivedKey = kdf(cekDesc, headers, z, providerContext);
         String cekAlg = cekDesc.getContentEncryptionKeyAlgorithm();
         return new SecretKeySpec(derivedKey, cekAlg);
@@ -164,7 +172,7 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
         }
     }
 
-    private byte[] generateEcdhSecret(PrivateKey privateKey, PublicKey publicKey, ProviderContext providerContext) throws JoseException
+    private KeyAgreement createKeyAgreement(PrivateKey privateKey, PublicKey publicKey, ProviderContext providerContext) throws JoseException
     {
         String keyAgreementProvider = providerContext.getSuppliedKeyProviderContext().getKeyAgreementProvider();
         KeyAgreement keyAgreement = getKeyAgreement(keyAgreementProvider);
@@ -179,6 +187,12 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
             throw new InvalidKeyException("Invalid Key for " + getJavaAlgorithm() + " key agreement - " + e, e);
         }
 
+        return keyAgreement;
+    }
+
+    private byte[] generateEcdhSecret(PrivateKey privateKey, PublicKey publicKey, ProviderContext providerContext) throws JoseException
+    {
+        KeyAgreement keyAgreement = createKeyAgreement(privateKey, publicKey, providerContext);
         return keyAgreement.generateSecret();
     }
 

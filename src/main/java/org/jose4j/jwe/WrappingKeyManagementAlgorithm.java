@@ -18,6 +18,7 @@ package org.jose4j.jwe;
 
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwx.Headers;
 import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.ExceptionHelp;
@@ -96,7 +97,8 @@ public abstract class WrappingKeyManagementAlgorithm extends AlgorithmInfo imple
         }
     }
 
-    public Key manageForDecrypt(Key managementKey, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+    @Override
+    public CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext) throws JoseException
     {
         String provider = providerContext.getSuppliedKeyProviderContext().getCipherProvider();
         Cipher cipher = CipherUtil.getCipher(getJavaAlgorithm(), provider);
@@ -113,6 +115,13 @@ public abstract class WrappingKeyManagementAlgorithm extends AlgorithmInfo imple
         {
             throw new JoseException("Unable to initialize cipher ("+cipher.getAlgorithm()+") for key decryption - " + e, e);
         }
+
+        return new CryptoPrimitive(cipher);
+    }
+
+    public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+    {
+        Cipher cipher = cryptoPrimitive.getCipher();
 
         String cekAlg = cekDesc.getContentEncryptionKeyAlgorithm();
 

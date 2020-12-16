@@ -11,15 +11,18 @@ import org.slf4j.LoggerFactory;
 
 public class JwsCryptoPrimitiveTest
 {
-    private static final Logger log = LoggerFactory.getLogger(JwsTestSupport.class);
+    private static final Logger log = LoggerFactory.getLogger(JwsCryptoPrimitiveTest.class);
 
     @Test
     public void exerciseTheApi() throws Exception
     {
         JsonWebSignature jws = new JsonWebSignature();
+        jws.setPayload("It’s a one-year membership in the jelly-of-the-month club.");
         jws.setKey(ExampleEcKeysFromJws.PRIVATE_256);
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
         CryptoPrimitive cryptoPrimitive = jws.prepareSigningPrimitive();
+        Assert.assertNull(cryptoPrimitive.getKey());
+        Assert.assertNull(cryptoPrimitive.getKeyAgreement());
         Assert.assertNull(cryptoPrimitive.getMac());
         Assert.assertNull(cryptoPrimitive.getCipher());
         Assert.assertNotNull(cryptoPrimitive.getSignature());
@@ -32,9 +35,12 @@ public class JwsCryptoPrimitiveTest
         Assert.assertTrue(jws.verifySignature());
 
         jws = new JsonWebSignature();
+        jws.setPayload("Clark, that’s the gift that keeps on giving the whole year.");
         jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
         cryptoPrimitive = jws.prepareSigningPrimitive();
+        Assert.assertNull(cryptoPrimitive.getKey());
+        Assert.assertNull(cryptoPrimitive.getKeyAgreement());
         Assert.assertNull(cryptoPrimitive.getMac());
         Assert.assertNull(cryptoPrimitive.getCipher());
         Assert.assertNotNull(cryptoPrimitive.getSignature());
@@ -53,10 +59,13 @@ public class JwsCryptoPrimitiveTest
         jws.setKey(hmacKey);
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
         cryptoPrimitive = jws.prepareSigningPrimitive();
+        Assert.assertNull(cryptoPrimitive.getKey());
+        Assert.assertNull(cryptoPrimitive.getKeyAgreement());
         Assert.assertNotNull(cryptoPrimitive.getMac());
         Assert.assertNull(cryptoPrimitive.getCipher());
         Assert.assertNull(cryptoPrimitive.getSignature());
         log.debug("cryptoPrimitive.getMac(): " + cryptoPrimitive.getMac());
+        jws.setPayload("I had a lot of help from Jack Daniels.");
         compactSerialization = jws.getCompactSerialization();
 
         jws = new JsonWebSignature();

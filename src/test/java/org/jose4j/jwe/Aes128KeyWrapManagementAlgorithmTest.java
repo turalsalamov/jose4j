@@ -19,6 +19,7 @@ package org.jose4j.jwe;
 import junit.framework.TestCase;
 import org.jose4j.base64url.Base64Url;
 import org.jose4j.jca.ProviderContextTest;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.keys.AesKey;
 import org.jose4j.lang.ByteUtil;
@@ -63,7 +64,8 @@ public class Aes128KeyWrapManagementAlgorithmTest extends TestCase
 
         byte[] encryptedKey = u.base64UrlDecode(encodedEncryptedKeyFromExample);
 
-        Key key = wrappingKeyManagementAlgorithm.manageForDecrypt(managementKey, encryptedKey, cekDesc, null, ProviderContextTest.EMPTY_CONTEXT);
+        CryptoPrimitive cryptoPrimitive = wrappingKeyManagementAlgorithm.prepareForDecrypt(managementKey, null, ProviderContextTest.EMPTY_CONTEXT);
+        Key key = wrappingKeyManagementAlgorithm.manageForDecrypt(cryptoPrimitive, encryptedKey, cekDesc, null, ProviderContextTest.EMPTY_CONTEXT);
 
         assertTrue(Arrays.equals(cekBytes, key.getEncoded()));
     }

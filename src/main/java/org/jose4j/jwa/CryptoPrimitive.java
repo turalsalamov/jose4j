@@ -2,7 +2,9 @@ package org.jose4j.jwa;
 
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyAgreement;
 import javax.crypto.Mac;
+import java.security.Key;
 import java.security.Signature;
 
 /**
@@ -14,27 +16,41 @@ public class CryptoPrimitive
     private final Signature sig;
     private final Cipher cip;
     private final Mac mac;
+    private final Key key;
+    private final KeyAgreement kag;
 
     public CryptoPrimitive(Signature sig)
     {
-        this(sig, null, null);
+        this(sig, null, null, null, null);
     }
 
     public CryptoPrimitive(Cipher cipher)
     {
-        this(null, cipher, null);
+        this(null, cipher, null, null, null);
     }
 
     public CryptoPrimitive(Mac mac)
     {
-        this(null, null, mac);
+        this(null, null, mac, null, null);
     }
 
-    private CryptoPrimitive(Signature sig, Cipher cip, Mac mac)
+    public CryptoPrimitive(Key key)
+    {
+        this(null, null, null, key, null);
+    }
+
+    public CryptoPrimitive(KeyAgreement keyAgreement)
+    {
+        this(null, null, null, null, keyAgreement);
+    }
+
+    private CryptoPrimitive(Signature sig, Cipher cip, Mac mac, Key key, KeyAgreement kag)
     {
         this.sig = sig;
         this.cip = cip;
         this.mac = mac;
+        this.key = key;
+        this.kag = kag;
     }
 
     /**
@@ -63,4 +79,25 @@ public class CryptoPrimitive
     public Mac getMac() {
         return mac;
     }
+
+    /**
+     * Get the {@link Key} object.
+     *
+     * @return {@link Key} object or null if this wrapper doesn't have one.
+     */
+    public Key getKey()
+    {
+        return key;
+    }
+
+    /**
+     * Get the {@link KeyAgreement} object.
+     *
+     * @return {@link KeyAgreement} object or null if this wrapper doesn't have one.
+     */
+    public KeyAgreement getKeyAgreement()
+    {
+        return kag;
+    }
+
 }
