@@ -19,6 +19,7 @@ package org.jose4j.jws;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmFactory;
 import org.jose4j.jwa.AlgorithmFactoryFactory;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwx.CompactSerializer;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.JsonWebStructure;
@@ -28,9 +29,11 @@ import org.jose4j.lang.InvalidAlgorithmException;
 import org.jose4j.lang.JoseException;
 import org.jose4j.lang.StringUtil;
 
+import javax.crypto.Mac;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Key;
+import java.security.Signature;
 
 /**
  * The JsonWebSignature class is used to produce and consume JSON Web Signature (JWS) as defined in
@@ -45,6 +48,7 @@ public class JsonWebSignature extends JsonWebStructure
     private String encodedPayload;
 
     private Boolean validSignature;
+    private CryptoPrimitive signingPrimitive;
 
     public JsonWebSignature()
     {
@@ -173,10 +177,25 @@ public class JsonWebSignature extends JsonWebStructure
     }
 
     /**
-     * Compute the JWS signature.
-     * @throws JoseException if an error condition is encountered during the signing process
+     * Create, initialize (using the key and {@link org.jose4j.jca.ProviderContext}) and return the {@link CryptoPrimitive} that
+     * this JWS instance will use for signing.
+     * This can optionally be called after setting the key (and maybe ProviderContext) but before getting the compact
+     * serialization (which is when the singing magic happens).
+     * This method provides access to the underlying primitive instance (e.g. a {@link Signature}), which allows execution of
+     * the operation to be gated by some approval or authorization.
+     * For example, signing on Android with a key that was set to require user authentication when created needs a biometric
+     * prompt to allow the signature to execute with the key.
+     *
+     * @return a CryptoPrimitive containing either a {@link Signature} or {@link Mac}, or null
+     * @throws JoseException if an error condition is encountered during the initialization process
      */
-    public void sign() throws JoseException
+    public CryptoPrimitive prepareSigningPrimitive() throws JoseException
+    {
+        signingPrimitive = createSigningPrimitive();
+        return signingPrimitive;
+    }
+
+    private CryptoPrimitive createSigningPrimitive() throws JoseException
     {
         JsonWebSignatureAlgorithm algorithm = getAlgorithm();
         Key signingKey = getKey();
@@ -184,8 +203,18 @@ public class JsonWebSignature extends JsonWebStructure
         {
             algorithm.validateSigningKey(signingKey);
         }
+        return algorithm.prepareForSign(signingKey, getProviderCtx());
+    }
+
+    /**
+     * Compute the JWS signature.
+     * @throws JoseException if an error condition is encountered during the signing process
+     */
+    public void sign() throws JoseException
+    {
+        CryptoPrimitive cryptoPrimitive = (signingPrimitive == null) ? createSigningPrimitive() : signingPrimitive;
         byte[] inputBytes = getSigningInputBytes();
-        byte[] signatureBytes = algorithm.sign(signingKey, inputBytes, getProviderCtx());
+        byte[] signatureBytes = getAlgorithm().sign(cryptoPrimitive, inputBytes);
         setSignature(signatureBytes);
     }
 

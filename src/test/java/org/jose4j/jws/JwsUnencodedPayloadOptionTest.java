@@ -3,6 +3,7 @@ package org.jose4j.jws;
 import org.jose4j.base64url.Base64Url;
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmConstraints;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.keys.ExampleRsaKeyFromJws;
@@ -169,7 +170,8 @@ public class JwsUnencodedPayloadOptionTest
         boolean okay = hmacSha256.verifySignature(signatureBytes, key, securedInputBytes, providerContext);
         assertTrue(okay);
 
-        final byte[] signed = hmacSha256.sign(key, securedInputBytes, providerContext);
+        CryptoPrimitive cryptoPrimitive = hmacSha256.prepareForSign(key, providerContext);
+        final byte[] signed = hmacSha256.sign(cryptoPrimitive, securedInputBytes);
         assertThat(Base64Url.encode(signed), equalTo(jws.getEncodedSignature()));
     }
 

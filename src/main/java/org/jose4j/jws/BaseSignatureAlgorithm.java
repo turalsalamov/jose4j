@@ -18,6 +18,7 @@ package org.jose4j.jws;
 
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.keys.KeyPersuasion;
 import org.jose4j.lang.ExceptionHelp;
 import org.jose4j.lang.InvalidKeyException;
@@ -67,10 +68,17 @@ public abstract class BaseSignatureAlgorithm extends AlgorithmInfo implements Js
     }
 
     @Override
-    public byte[] sign(Key key, byte[] securedInputBytes, ProviderContext providerContext) throws JoseException
+    public CryptoPrimitive prepareForSign(Key key, ProviderContext providerContext) throws JoseException
     {
         Signature signature = getSignature(providerContext);
         initForSign(signature, key, providerContext);
+        return new CryptoPrimitive(signature);
+    }
+
+    @Override
+    public byte[] sign(CryptoPrimitive cryptoPrimitive, byte[] securedInputBytes) throws JoseException
+    {
+        Signature signature = cryptoPrimitive.getSignature();
         try
         {
             signature.update(securedInputBytes);

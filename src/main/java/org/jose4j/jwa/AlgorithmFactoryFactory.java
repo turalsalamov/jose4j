@@ -60,7 +60,7 @@ public class AlgorithmFactoryFactory
         log.debug("Initializing jose4j (running with Java {} from {} at {} with {} security providers installed)...", version, vendor, home, providers);
         long startTime = System.currentTimeMillis();
         jwsAlgorithmFactory = new AlgorithmFactory<>(HeaderParameterNames.ALGORITHM, JsonWebSignatureAlgorithm.class);
-        jwsAlgorithmFactory.registerAlgorithm(new PlaintextNoneAlgorithm());
+        jwsAlgorithmFactory.registerAlgorithm(new UnsecuredNoneAlgorithm());
         jwsAlgorithmFactory.registerAlgorithm(new HmacUsingShaAlgorithm.HmacSha256());
         jwsAlgorithmFactory.registerAlgorithm(new HmacUsingShaAlgorithm.HmacSha384());
         jwsAlgorithmFactory.registerAlgorithm(new HmacUsingShaAlgorithm.HmacSha512());

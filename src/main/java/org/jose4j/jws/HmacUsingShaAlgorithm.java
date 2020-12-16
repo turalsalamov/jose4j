@@ -19,6 +19,7 @@ package org.jose4j.jws;
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmAvailability;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.OctetSequenceJsonWebKey;
 import org.jose4j.keys.KeyPersuasion;
 import org.jose4j.lang.ByteUtil;
@@ -58,9 +59,16 @@ public class HmacUsingShaAlgorithm extends AlgorithmInfo implements JsonWebSigna
         return ByteUtil.secureEquals(signatureBytes, calculatedSigature);
     }
 
-    public byte[] sign(Key key, byte[] securedInputBytes, ProviderContext providerContext) throws JoseException
+    @Override
+    public CryptoPrimitive prepareForSign(Key key, ProviderContext providerContext) throws JoseException
     {
         Mac mac = getMacInstance(key, providerContext);
+        return new CryptoPrimitive(mac);
+    }
+
+    public byte[] sign(CryptoPrimitive cryptoPrimitive, byte[] securedInputBytes) throws JoseException
+    {
+        Mac mac = cryptoPrimitive.getMac();
         return mac.doFinal(securedInputBytes);
     }
 

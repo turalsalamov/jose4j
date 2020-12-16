@@ -18,6 +18,7 @@ package org.jose4j.jws;
 
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmInfo;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.keys.KeyPersuasion;
 import org.jose4j.lang.ByteUtil;
@@ -26,14 +27,11 @@ import org.jose4j.lang.JoseException;
 
 import java.security.Key;
 
-/**
- *  TODO as of http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-32 the term Plaintext JWS was replace with Unsecured JWS and I'd like to change the name here to match but worry (a little) about compatibility
- */
-public class PlaintextNoneAlgorithm extends AlgorithmInfo implements JsonWebSignatureAlgorithm
+public class UnsecuredNoneAlgorithm extends AlgorithmInfo implements JsonWebSignatureAlgorithm
 {
     private static final String CANNOT_HAVE_KEY_MESSAGE = "JWS Plaintext ("+ HeaderParameterNames.ALGORITHM+"="+ AlgorithmIdentifiers.NONE+") must not use a key.";
 
-    public PlaintextNoneAlgorithm()
+    public UnsecuredNoneAlgorithm()
     {
         setAlgorithmIdentifier(AlgorithmIdentifiers.NONE);
         setKeyPersuasion(KeyPersuasion.NONE);
@@ -48,10 +46,15 @@ public class PlaintextNoneAlgorithm extends AlgorithmInfo implements JsonWebSign
     }
 
     @Override
-    public byte[] sign(Key key, byte[] securedInputBytes, ProviderContext providerContext) throws JoseException
+    public CryptoPrimitive prepareForSign(Key key, ProviderContext providerContext) throws JoseException
     {
         validateKey(key);
+        return null;
+    }
 
+    @Override
+    public byte[] sign(CryptoPrimitive cryptoPrimitive, byte[] securedInputBytes)
+    {
         return ByteUtil.EMPTY_BYTES;
     }
 

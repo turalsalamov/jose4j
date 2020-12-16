@@ -18,6 +18,7 @@ package org.jose4j.jws;
 
 
 import org.jose4j.jca.ProviderContext;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
 import org.jose4j.keys.EllipticCurves;
 import org.jose4j.lang.InvalidKeyException;
@@ -28,8 +29,6 @@ import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECKey;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.EllipticCurve;
 
@@ -63,9 +62,9 @@ public class EcdsaUsingShaAlgorithm extends BaseSignatureAlgorithm implements Js
         return super.verifySignature(derEncodedSignatureBytes, key, securedInputBytes, providerContext);
     }
 
-    public byte[] sign(Key key, byte[] securedInputBytes, ProviderContext providerContext) throws JoseException
+    public byte[] sign(CryptoPrimitive cryptoPrimitive, byte[] securedInputBytes) throws JoseException
     {
-        byte[] derEncodedSignatureBytes = super.sign(key, securedInputBytes, providerContext);
+        byte[] derEncodedSignatureBytes = super.sign(cryptoPrimitive, securedInputBytes);
         try
         {
             return convertDerToConcatenated(derEncodedSignatureBytes, signatureByteLength);
