@@ -18,6 +18,7 @@ package org.jose4j.jwe;
 
 import junit.framework.TestCase;
 
+import org.jose4j.jwa.AlgorithmFactoryFactory;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.keys.AesKey;
@@ -395,6 +396,7 @@ public class NegativeJweKeyTest extends TestCase
     @Test
     public void testTryDecryptWithTestPlainTextFromJOSECPP() throws JoseException
     {
+        if (!AlgorithmFactoryFactory.getInstance().getJweKeyManagementAlgorithmFactory().isAvailable(A128GCMKW)) { return; } // just skip it if GCM isn't there
         /*
          from https://bitbucket.org/b_c/jose4j/issues/170/a128gcmkw-with-a128gcm-content-encryption
          using A128GCMKW key wrapping w/ A128GCM content encryption, but due to a bug code that produced this JWE,
