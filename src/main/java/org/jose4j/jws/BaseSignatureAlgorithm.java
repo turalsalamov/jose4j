@@ -132,12 +132,26 @@ public abstract class BaseSignatureAlgorithm extends AlgorithmInfo implements Js
 
     private Signature getSignature(ProviderContext providerContext) throws JoseException
     {
-        String sigProvider = providerContext.getSuppliedKeyProviderContext().getSignatureProvider();
+        ProviderContext.Context suppliedKeyProviderContext = providerContext.getSuppliedKeyProviderContext();
+        String sigProvider = suppliedKeyProviderContext.getSignatureProvider();
         String javaAlg = getJavaAlgorithm();
+        ProviderContext.SignatureAlgorithmOverride algOverride = suppliedKeyProviderContext.getSignatureAlgorithmOverride();
+        if (algOverride != null && algOverride.getAlgorithmName() != null)
+        {
+            javaAlg = algOverride.getAlgorithmName();
+        }
+
         try
         {
 
             Signature signature = sigProvider == null ? Signature.getInstance(javaAlg) : Signature.getInstance(javaAlg, sigProvider);
+
+            AlgorithmParameterSpec algorithmParameterSpec = this.algorithmParameterSpec;
+            if (algOverride != null)
+            {
+                algorithmParameterSpec = algOverride.getAlgorithmParameterSpec();
+            }
+
             if (algorithmParameterSpec != null)
             {
                 try

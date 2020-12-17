@@ -1,15 +1,20 @@
 package org.jose4j.jws;
 
+import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.AlgorithmConstraints;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwa.JceProviderTestSupport;
 import org.jose4j.keys.ExampleRsaKeyFromJws;
 import org.jose4j.lang.JoseException;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -24,10 +29,17 @@ public class RsaPssTest
     private final String[] pssAlgs = new String[]{AlgorithmIdentifiers.RSA_PSS_USING_SHA256,
             AlgorithmIdentifiers.RSA_PSS_USING_SHA384, AlgorithmIdentifiers.RSA_PSS_USING_SHA512};
 
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
     @Test
     public void roundTrips() throws Exception
     {
         final List<String> jwss = new ArrayList<>();
+
+        final Map<String,String> legacyAlgs = new HashMap<>();
+        legacyAlgs.put(AlgorithmIdentifiers.RSA_PSS_USING_SHA256, "SHA256withRSAandMGF1");
+        legacyAlgs.put(AlgorithmIdentifiers.RSA_PSS_USING_SHA384, "SHA384withRSAandMGF1");
+        legacyAlgs.put(AlgorithmIdentifiers.RSA_PSS_USING_SHA512, "SHA512withRSAandMGF1");
 
         if (hasRSASSA_PSSbyName())
         {
@@ -64,6 +76,28 @@ public class RsaPssTest
                 {
                     String cs = makePssJws(alg);
                     jwss.add(cs);
+
+                    // and test out the Signature Algorithm Override
+                    ProviderContext providerContext = new ProviderContext();
+                    ProviderContext.Context suppliedKeyProviderContext = providerContext.getSuppliedKeyProviderContext();
+                    String legacyAlgName = legacyAlgs.get(alg);
+                    ProviderContext.SignatureAlgorithmOverride sao = new ProviderContext.SignatureAlgorithmOverride(legacyAlgName, null);
+                    suppliedKeyProviderContext.setSignatureAlgorithmOverride(sao);
+                    providerContext.getSuppliedKeyProviderContext().setSignatureProvider("BC");
+
+                    JsonWebSignature jws = new JsonWebSignature();
+                    jws.setProviderContext(providerContext);
+                    jws.setAlgorithmHeaderValue(alg);
+                    jws.setPayload(PAYLOAD);
+                    jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+
+                    CryptoPrimitive cryptoPrimitive = jws.prepareSigningPrimitive();
+                    log.debug("Signature underlying JWS w/setSignatureAlgorithmOverride("+
+                            suppliedKeyProviderContext.getSignatureAlgorithmOverride()+"):" +
+                            cryptoPrimitive.getSignature());
+
+                    jwss.add(jws.getCompactSerialization());
+
                 }
             }
         });
@@ -88,6 +122,25 @@ public class RsaPssTest
             @Override
             public void runTest() throws Exception {
                 verifyJwssWithStuffHere(jwss);
+
+                for (String cs : jwss)
+                {
+                    JsonWebSignature jws = new JsonWebSignature();
+                    jws.setAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, pssAlgs));
+                    jws.setKey(ExampleRsaKeyFromJws.PUBLIC_KEY);
+                    jws.setCompactSerialization(cs);
+
+                    ProviderContext pc = new ProviderContext();
+                    ProviderContext.Context suppliedKeyProviderContext = pc.getSuppliedKeyProviderContext();
+                    String legacyAlgName = legacyAlgs.get(jws.getAlgorithmHeaderValue());
+                    ProviderContext.SignatureAlgorithmOverride sao = new ProviderContext.SignatureAlgorithmOverride(legacyAlgName, null);
+                    suppliedKeyProviderContext.setSignatureAlgorithmOverride(sao);
+                    pc.getSuppliedKeyProviderContext().setSignatureProvider("BC");
+                    jws.setProviderContext(pc);
+
+                    assertTrue(jws.verifySignature());
+                    assertThat(PAYLOAD, equalTo(jws.getPayload()));
+                }
             }
         });
     }
@@ -97,6 +150,9 @@ public class RsaPssTest
         jws.setAlgorithmHeaderValue(alg);
         jws.setPayload(PAYLOAD);
         jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+
+        CryptoPrimitive cryptoPrimitive = jws.prepareSigningPrimitive();
+        log.debug("Signature underlying JWS w/("+ alg +"):" + cryptoPrimitive.getSignature());
 
         return jws.getCompactSerialization();
     }
@@ -165,7 +221,7 @@ public class RsaPssTest
         }
     }
 
-    private boolean hasRSASSA_PSSbyName() // which implies > Java 11
+    private boolean hasRSASSA_PSSbyName() // which implies > Java 11 (or later versions >= u251 of 8 apparently)
     {
         return RsaUsingShaAlgorithm.RSASSA_PSS.equalsIgnoreCase(RsaUsingShaAlgorithm.choosePssAlgorithmName(null));
     }

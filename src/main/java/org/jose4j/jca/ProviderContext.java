@@ -16,6 +16,7 @@
 package org.jose4j.jca;
 
 import java.security.SecureRandom;
+import java.security.spec.AlgorithmParameterSpec;
 
 /**
  * Allows for the caller of various JOSE and JWT functionality to specify
@@ -105,6 +106,7 @@ public class ProviderContext
         private String keyAgreementProvider;
         private String cipherProvider;
         private String signatureProvider;
+        private SignatureAlgorithmOverride signatureAlgorithmOverride;
         private String macProvider;
         private String messageDigestProvider;
         private String keyFactoryProvider;
@@ -211,6 +213,29 @@ public class ProviderContext
         }
 
         /**
+         * Gets the the algorithm info (name and parameter spec) to be used as overrides for relevant {@code Signature} operations.
+         * Null means no override is done and the normal algorithm details are used.
+         * @return the SignatureAlgorithmOverride object or null
+         */
+        public SignatureAlgorithmOverride getSignatureAlgorithmOverride()
+        {
+            return signatureAlgorithmOverride;
+        }
+
+        /**
+         * Sets the algorithm info (name and parameter spec) to be used as overrides for relevant {@code Signature} operations.
+         * The need for this should be quite rare but it could be useful in cases where different providers are using different
+         * names for the same algorithm - and there have been some naming inconsistencies with RSAPSS where RSASSA-PSS + AlgorithmParameterSpec
+         * was used when PSS support was added to the default JRE but providers that supported PSS earlier used something like SHA256withRSAandMGF1).
+         *
+         * @param signatureAlgorithmOverride with the algorithm info. Null indicates to use the defaults (and is the default in and of itself).
+         */
+        public void setSignatureAlgorithmOverride(SignatureAlgorithmOverride signatureAlgorithmOverride)
+        {
+            this.signatureAlgorithmOverride = signatureAlgorithmOverride;
+        }
+
+        /**
          * Gets the the JCA provider to be used for relevant {@code Mac} operations.
          * @return of the Mac provider or {@code null} for the the system configured providers.
          */
@@ -275,4 +300,43 @@ public class ProviderContext
             return specificValue == null ? generalProvider : specificValue;
         }
     }
+
+    /**
+     * Signature Algorithm info used to override normal defaults.
+     */
+    public static class SignatureAlgorithmOverride
+    {
+        private String algorithmName;
+        private AlgorithmParameterSpec AlgorithmParameterSpec;
+
+        /**
+         * Create a new SignatureAlgorithmOverride instance
+         * @param algorithmName the algorithm name (e.g. SHA256withRSAandMGF1)
+         * @param aps the AlgorithmParameterSpec
+         */
+        public SignatureAlgorithmOverride(String algorithmName, AlgorithmParameterSpec aps)
+        {
+            this.algorithmName = algorithmName;
+            AlgorithmParameterSpec = aps;
+        }
+
+        /**
+         * Gets the name of the signature algorithm to use in place of the normal default one.
+         * @return the signature algorithm name.
+         */
+        public String getAlgorithmName()
+        {
+            return algorithmName;
+        }
+
+        /**
+         * Gets the AlgorithmParameterSpec to use in place of the normal default one.
+         * @return the AlgorithmParameterSpec.
+         */
+        public AlgorithmParameterSpec getAlgorithmParameterSpec()
+        {
+            return AlgorithmParameterSpec;
+        }
+    }
+
 }

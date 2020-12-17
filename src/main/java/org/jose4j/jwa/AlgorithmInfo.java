@@ -70,4 +70,10 @@ public abstract class AlgorithmInfo implements Algorithm
     {
         this.keyType = keyType;
     }
+
+    @Override
+    public String toString()
+    {
+        return getClass().getName() + "("+algorithmIdentifier +"|" + javaAlgorithm+")";
+    }
 }
