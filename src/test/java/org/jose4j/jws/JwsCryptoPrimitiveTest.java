@@ -33,6 +33,8 @@ public class JwsCryptoPrimitiveTest
         jws.setCompactSerialization(compactSerialization);
         jws.setKey(ExampleEcKeysFromJws.PUBLIC_256);
         Assert.assertTrue(jws.verifySignature());
+        Assert.assertTrue(jws.getPayload().contains("jelly-of-the-month"));
+
 
         jws = new JsonWebSignature();
         jws.setPayload("Clark, that’s the gift that keeps on giving the whole year.");
@@ -51,6 +53,7 @@ public class JwsCryptoPrimitiveTest
         jws.setCompactSerialization(compactSerialization);
         jws.setKey(ExampleRsaKeyFromJws.PUBLIC_KEY);
         Assert.assertTrue(jws.verifySignature());
+        Assert.assertTrue(jws.getPayload().contains("Clark,"));
 
 
         jws = new JsonWebSignature();
@@ -72,6 +75,6 @@ public class JwsCryptoPrimitiveTest
         jws.setCompactSerialization(compactSerialization);
         jws.setKey(hmacKey);
         Assert.assertTrue(jws.verifySignature());
-
+        Assert.assertTrue(jws.getPayload().contains("Daniels"));
     }
 }
