@@ -31,8 +31,6 @@ import javax.crypto.spec.PSource;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.MGF1ParameterSpec;
 
 /**
@@ -56,7 +54,7 @@ public class RsaKeyManagementAlgorithm extends WrappingKeyManagementAlgorithm im
     @Override
     public void validateDecryptionKey(Key managementKey, ContentEncryptionAlgorithm contentEncryptionAlg) throws InvalidKeyException
     {
-        PrivateKey pk = KeyValidationSupport.castKey(managementKey, RSAPrivateKey.class);
+        PrivateKey pk = KeyValidationSupport.castKey(managementKey, PrivateKey.class);
         KeyValidationSupport.checkRsaKeySize(pk);
     }
 
