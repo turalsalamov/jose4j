@@ -10,10 +10,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -102,6 +104,36 @@ public class RsaPssTest
             }
         });
 
+
+        // and test out the system property that'll force the use of the legacy rsa pss alg names
+        jceProviderTestSupport = new JceProviderTestSupport();
+        jceProviderTestSupport.setUseBouncyCastleRegardlessOfAlgs(true);
+        jceProviderTestSupport.setUseLegacyPssNames(true);
+        jceProviderTestSupport.runWithBouncyCastleProviderIfNeeded(new JceProviderTestSupport.RunnableTest()
+        {
+            @Override
+            public void runTest() throws Exception
+            {
+                for (String alg : pssAlgs)
+                {
+                    String legacyAlgName = legacyAlgs.get(alg);
+
+                    JsonWebSignature jws = new JsonWebSignature();
+                    jws.setAlgorithmHeaderValue(alg);
+                    jws.setPayload(PAYLOAD);
+                    jws.setKey(ExampleRsaKeyFromJws.PRIVATE_KEY);
+
+                    CryptoPrimitive cryptoPrimitive = jws.prepareSigningPrimitive();
+                    log.debug("Signature underlying JWS using legacy alg name system property:" +
+                            cryptoPrimitive.getSignature());
+                    assertThat(jws.getAlgorithm().getJavaAlgorithm(), equalTo(legacyAlgName));
+
+
+                    jwss.add(jws.getCompactSerialization());
+                }
+            }
+        });
+
         if (hasRSASSA_PSSbyName())
         {
             verifyJwssWithStuffHere(jwss);
@@ -140,6 +172,31 @@ public class RsaPssTest
 
                     assertTrue(jws.verifySignature());
                     assertThat(PAYLOAD, equalTo(jws.getPayload()));
+                }
+            }
+        });
+
+        //  test out the system property that'll force the use of the legacy rsa pss alg names
+        jceProviderTestSupport = new JceProviderTestSupport();
+        jceProviderTestSupport.setUseLegacyPssNames(true);
+        jceProviderTestSupport.setUseBouncyCastleRegardlessOfAlgs(true);
+        jceProviderTestSupport.runWithBouncyCastleProviderIfNeeded(new JceProviderTestSupport.RunnableTest()
+        {
+            @Override
+            public void runTest() throws Exception
+            {
+                verifyJwssWithStuffHere(jwss);
+
+                for (String cs : jwss)
+                {
+                    JsonWebSignature jws = new JsonWebSignature();
+                    jws.setAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, pssAlgs));
+                    jws.setKey(ExampleRsaKeyFromJws.PUBLIC_KEY);
+                    jws.setCompactSerialization(cs);
+
+                    assertTrue(jws.verifySignature());
+                    assertThat(PAYLOAD, equalTo(jws.getPayload()));
+                    assertThat(legacyAlgs.get(jws.getAlgorithmHeaderValue()), equalTo(jws.getAlgorithm().getJavaAlgorithm()));
                 }
             }
         });
@@ -223,6 +280,7 @@ public class RsaPssTest
 
     private boolean hasRSASSA_PSSbyName() // which implies > Java 11 (or later versions >= u251 of 8 apparently)
     {
-        return RsaUsingShaAlgorithm.RSASSA_PSS.equalsIgnoreCase(RsaUsingShaAlgorithm.choosePssAlgorithmName(null));
+        Set<String> sigAlgs = Security.getAlgorithms("Signature");
+        return sigAlgs.contains(RsaUsingShaAlgorithm.RSASSA_PSS);
     }
 }

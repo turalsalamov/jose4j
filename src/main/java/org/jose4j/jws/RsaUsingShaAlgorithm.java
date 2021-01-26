@@ -25,6 +25,7 @@ import java.security.PublicKey;
 import java.security.Security;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PSSParameterSpec;
+import java.util.Set;
 
 /**
  */
@@ -108,14 +109,8 @@ public class RsaUsingShaAlgorithm extends BaseSignatureAlgorithm implements Json
 
     static String choosePssAlgorithmName(String legacyName)
     {
-        for (String sigAlg : Security.getAlgorithms("Signature"))
-        {
-            if (RSASSA_PSS.equalsIgnoreCase(sigAlg))
-            {
-                return sigAlg;
-            }
-        }
-
-        return legacyName;
+        Set<String> signatureAlgorithms = Security.getAlgorithms("Signature");
+        boolean useLegacyName = Boolean.getBoolean("org.jose4j.jws.use-legacy-rsapss-alg-names");
+        return (signatureAlgorithms.contains(RSASSA_PSS) && !useLegacyName) ? RSASSA_PSS : legacyName;
     }
 }

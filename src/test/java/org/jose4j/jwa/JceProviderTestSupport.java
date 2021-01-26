@@ -35,6 +35,7 @@ public class JceProviderTestSupport
     private boolean putBouncyCastleFirst = true;
     private boolean useBouncyCastleRegardlessOfAlgs;
     private boolean doReinitialize = true;
+    private boolean useLegacyPssNames = false;
     private Set<String> signatureAlgs = Collections.emptySet();
     private Set<String> keyManagementAlgs = Collections.emptySet();
     private Set<String> encryptionAlgs = Collections.emptySet();
@@ -69,6 +70,11 @@ public class JceProviderTestSupport
             needBouncyCastle = true;
         }
 
+        if (useLegacyPssNames)
+        {
+            System.setProperty("org.jose4j.jws.use-legacy-rsapss-alg-names", "true");
+        }
+
         boolean removeBouncyCastle = true;
         try
         {
@@ -87,8 +93,13 @@ public class JceProviderTestSupport
         }
         finally
         {
-            if (needBouncyCastle)
+            if (needBouncyCastle || useLegacyPssNames)
             {
+                if (useLegacyPssNames)
+                {
+                    System.clearProperty("org.jose4j.jws.use-legacy-rsapss-alg-names");
+                }
+
                 if (removeBouncyCastle)
                 {
                     Security.removeProvider(bouncyCastleProvider.getName());
@@ -120,6 +131,11 @@ public class JceProviderTestSupport
     public void setDoReinitialize(boolean doReinitialize)
     {
         this.doReinitialize = doReinitialize;
+    }
+
+    public void setUseLegacyPssNames(boolean useLegacyPssNames)
+    {
+        this.useLegacyPssNames = useLegacyPssNames;
     }
 
     public void setUseBouncyCastleRegardlessOfAlgs(boolean useBouncyCastleRegardlessOfAlgs)
