@@ -1,6 +1,5 @@
 package org.jose4j.jwt.consumer;
 
-import org.hamcrest.CoreMatchers;
 import org.jose4j.lang.UncheckedJoseException;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -60,6 +59,7 @@ public class TypeValidatorTest
                 nope(tv, "jwt+example");
                 nope(tv, "example+jwt");
                 nope(tv, "[[meh");
+                nope(tv, "no;no;no");
 
 
                 yep(tv, "application/dpop+jwt");

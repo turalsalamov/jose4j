@@ -4,14 +4,13 @@ import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.JsonWebStructure;
 import org.jose4j.lang.UncheckedJoseException;
 
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
+import static java.util.Locale.*;
 
 public class TypeValidator implements ErrorCodeValidator
 {
     private static final String APPLICATION_PRIMARY_TYPE = "application";
 
-    private MimeType expectedType;
+    private SimpleMediaType expectedType;
     private boolean requireType;
 
     public TypeValidator(boolean requireType, String expectedType)
@@ -21,11 +20,10 @@ public class TypeValidator implements ErrorCodeValidator
             this.expectedType = toMediaType(expectedType);
             if (this.expectedType.getSubType().equals("*"))
             {
-                throw new MimeTypeParseException("cannot use wildcard in subtype");
+                throw new UncheckedJoseException("cannot use wildcard in subtype of expected type");
             }
-
         }
-        catch (MimeTypeParseException e)
+        catch (MediaTypeParseException e)
         {
             throw new UncheckedJoseException("The given expected type '"+expectedType+"' isn't a valid media type in this context.", e);
         }
@@ -45,14 +43,14 @@ public class TypeValidator implements ErrorCodeValidator
     {
         if (type == null)
         {
-            return requireType ? new Error(ErrorCodes.TYPE_MISSING, "No typ header parameter present in the innermost JWS/JWE") : null;
+            return requireType ? new Error(ErrorCodes.TYPE_MISSING, "No "+HeaderParameterNames.TYPE+" header parameter present in the innermost JWS/JWE") : null;
         }
 
         if (expectedType != null)
         {
             try
             {
-                MimeType mediaType = toMediaType(type);
+                SimpleMediaType mediaType = toMediaType(type);
                 if (!expectedType.match(mediaType) || mediaType.getSubType().equals("*"))
                 {
                     StringBuilder msg = new StringBuilder();
@@ -66,18 +64,124 @@ public class TypeValidator implements ErrorCodeValidator
                     return new Error(ErrorCodes.TYPE_INVALID, msg.toString());
                 }
             }
-            catch (MimeTypeParseException e)
+            catch (MediaTypeParseException e)
             {
-                return new Error(ErrorCodes.TYPE_INVALID, "typ header parameter value '"+type+"' not parsable as a media type " + e);
+                return new Error(ErrorCodes.TYPE_INVALID, HeaderParameterNames.TYPE + " header parameter value '"+type+"' not parsable as a media type " + e);
             }
         }
 
         return null;
     }
 
-    MimeType toMediaType(String type) throws MimeTypeParseException
+    private SimpleMediaType toMediaType(String typ) throws MediaTypeParseException
     {
-        return type.contains("/") ? new MimeType(type) : new MimeType(APPLICATION_PRIMARY_TYPE, type);
+        return typ.contains("/") ? new SimpleMediaType(typ) : new SimpleMediaType(APPLICATION_PRIMARY_TYPE, typ);
+    }
+
+    static class MediaTypeParseException extends Exception
+    {
+        MediaTypeParseException(String message)
+        {
+            super(message);
+        }
+    }
+
+    static class SimpleMediaType
+    {
+        private String primaryType;
+        private String subType;
+
+        SimpleMediaType(String mediaTypeString) throws MediaTypeParseException
+        {
+            this.parse(mediaTypeString);
+        }
+
+        SimpleMediaType(String primary, String sub) throws MediaTypeParseException
+        {
+            this.primaryType = primary.toLowerCase(ENGLISH);
+            checkToken(this.primaryType);
+            this.subType = sub.toLowerCase(ENGLISH);
+            checkToken(this.subType);
+        }
+
+        private void parse(String mediaTypeString) throws MediaTypeParseException
+        {
+            int slashIdx = mediaTypeString.indexOf('/');
+            if (slashIdx < 0 )
+            {
+                throw new MediaTypeParseException("Cannot find sub type.");
+            }
+
+            int semiIdx = mediaTypeString.indexOf(';'); // don't care about the params but try and account for them
+
+            if (semiIdx < 0)
+            {
+                this.primaryType = mediaTypeString.substring(0, slashIdx).trim().toLowerCase(ENGLISH);
+                this.subType = mediaTypeString.substring(slashIdx + 1).trim().toLowerCase(ENGLISH);
+            }
+            else
+            {
+                if (slashIdx >= semiIdx)
+                {
+                    throw new MediaTypeParseException("Cannot find sub type.");
+                }
+
+                this.primaryType = mediaTypeString.substring(0, slashIdx).trim().toLowerCase(ENGLISH);
+                this.subType = mediaTypeString.substring(slashIdx + 1, semiIdx).trim().toLowerCase(ENGLISH);
+            }
+
+            checkToken(this.primaryType);
+            checkToken(this.subType);
+        }
+
+        String getPrimaryType()
+        {
+            return this.primaryType;
+        }
+
+        String getSubType()
+        {
+            return this.subType;
+        }
+
+        public String toString()
+        {
+            return this.getBaseType();
+        }
+
+        String getBaseType()
+        {
+            return this.primaryType + "/" + this.subType;
+        }
+
+        boolean match(SimpleMediaType type)
+        {
+            return this.primaryType.equals(type.getPrimaryType())
+                    && (this.subType.equals(type.getSubType()) || this.subType.equals("*") || type.getSubType().equals("*"));
+        }
+
+        private static boolean isLegitTokenChar(char c)
+        {
+            return c > ' ' && c <= '~' && "()<>@,;:/[]?=\\\"".indexOf(c) < 0;
+        }
+
+        private static void checkToken(String t) throws MediaTypeParseException
+        {
+            if (t == null || t.length() == 0)
+            {
+                throw new MediaTypeParseException("cannot have empty part");
+            }
+
+            for (int i = 0; i < t.length(); ++i)
+            {
+                char c = t.charAt(i);
+                if (!isLegitTokenChar(c))
+                {
+                    throw new MediaTypeParseException("Invalid token char " + c);
+                }
+            }
+
+        }
     }
 }
 
