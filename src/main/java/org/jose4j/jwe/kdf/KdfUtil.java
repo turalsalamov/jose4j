@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 Brian Campbell
+ * Copyright 2012-2021 Brian Campbell
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,16 @@ import org.jose4j.lang.StringUtil;
 public class KdfUtil
 {
     private Base64Url base64Url = new Base64Url();;
-    private ConcatKeyDerivationFunction kdf;
+    private ConcatenationKeyDerivationFunctionWithSha256 kdf;
 
     public KdfUtil()
     {
-        kdf = new ConcatKeyDerivationFunction("SHA-256");
+        this(null);
     }
 
     public KdfUtil(String provider)
     {
-        kdf = new ConcatKeyDerivationFunction("SHA-256", provider);
+        kdf = ConcatKeyDerivationFunctionFactory.make(provider);
     }
 
     public byte[] kdf(byte[] sharedSecret, int keydatalen, String algorithmId, String partyUInfo, String partyVInfo)
@@ -45,7 +45,9 @@ public class KdfUtil
         byte[] suppPubInfo = ByteUtil.getBytes(keydatalen);
         byte[] suppPrivInfo =  ByteUtil.EMPTY_BYTES;
 
-        return kdf.kdf(sharedSecret, keydatalen, algorithmIdBytes, partyUInfoBytes, partyVInfoBytes, suppPubInfo, suppPrivInfo);
+        byte[] otherInfo = ByteUtil.concat(algorithmIdBytes, partyUInfoBytes, partyVInfoBytes, suppPubInfo, suppPrivInfo);
+
+        return kdf.kdf(sharedSecret, keydatalen, otherInfo);
     }
 
     byte[] prependDatalen(byte[] data)

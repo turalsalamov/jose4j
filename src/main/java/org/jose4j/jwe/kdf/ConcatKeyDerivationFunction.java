@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2017 Brian Campbell
+ * Copyright 2012-2021 Brian Campbell
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.security.MessageDigest;
  * "Recommendation for Pair-Wise Key Establishment Schemes Using Discrete Logarithm Cryptography",
  * NIST Special Publication 800-56A, Revision 2, May 2013.
  */
-public class ConcatKeyDerivationFunction
+public class ConcatKeyDerivationFunction implements ConcatenationKeyDerivationFunctionWithSha256
 {
     private static final Logger log = LoggerFactory.getLogger(ConcatKeyDerivationFunction.class);
 
