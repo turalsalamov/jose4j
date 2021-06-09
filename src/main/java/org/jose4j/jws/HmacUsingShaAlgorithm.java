@@ -30,6 +30,7 @@ import org.jose4j.mac.MacUtil;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 
 /**
  */
@@ -110,7 +111,15 @@ public class HmacUsingShaAlgorithm extends AlgorithmInfo implements JsonWebSigna
     @Override
     public boolean isAvailable()
     {
-        return AlgorithmAvailability.isAvailable("Mac", getJavaAlgorithm());
+        try
+        {
+            Mac.getInstance(getJavaAlgorithm());
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            return false;
+        }
+        return true;
     }
 
     public static class HmacSha256 extends HmacUsingShaAlgorithm
