@@ -94,7 +94,7 @@ public class InvalidJwtException extends Exception
      * Some care should be taken when using this because, depending on what kind
      * of error was encountered in processing the JWT and
      * when it was encountered, the <code>JwtContext</code> may not be complete.
-     * @return the the <code>JwtContext</code>
+     * @return the <code>JwtContext</code>
      */
     public JwtContext getJwtContext()
     {
@@ -112,5 +112,13 @@ public class InvalidJwtException extends Exception
             sb.append(details);
         }
         return sb.toString();
+    }
+
+    /**
+     * Returns the original message of this exception without the details.
+     * @return the original message
+     */
+    public String getOriginalMessage() {
+        return super.getMessage();
     }
 }
