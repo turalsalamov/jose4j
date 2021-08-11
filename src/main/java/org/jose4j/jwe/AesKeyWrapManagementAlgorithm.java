@@ -20,9 +20,13 @@ import org.jose4j.jwa.AlgorithmAvailability;
 import org.jose4j.jwk.OctetSequenceJsonWebKey;
 import org.jose4j.jwx.KeyValidationSupport;
 import org.jose4j.keys.KeyPersuasion;
+import org.jose4j.lang.ExceptionHelp;
 import org.jose4j.lang.InvalidKeyException;
 
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 
 /**
  */
@@ -32,7 +36,7 @@ public class AesKeyWrapManagementAlgorithm extends WrappingKeyManagementAlgorith
 
     public AesKeyWrapManagementAlgorithm(String alg, int keyByteLength)
     {
-        super("AESWrap", alg);
+        super("AESWrap", alg); // -> AES/KW/NoPadding as of Java 17 but using AESWrap for compatibility
         setKeyType(OctetSequenceJsonWebKey.KEY_TYPE);
         setKeyPersuasion(KeyPersuasion.SYMMETRIC);
         this.keyByteLength = keyByteLength;
@@ -64,8 +68,17 @@ public class AesKeyWrapManagementAlgorithm extends WrappingKeyManagementAlgorith
     public boolean isAvailable()
     {
         int aesByteKeyLength = getKeyByteLength();
-        String agl = getJavaAlgorithm();
-        return AlgorithmAvailability.isAvailable("Cipher", agl) && CipherStrengthSupport.isAvailable(agl, aesByteKeyLength);
+        String alg = getJavaAlgorithm();
+        try
+        {
+            Cipher.getInstance(alg);
+            return CipherStrengthSupport.isAvailable(alg, aesByteKeyLength);
+        }
+        catch (NoSuchAlgorithmException | NoSuchPaddingException e)
+        {
+            log.debug("{} for {} is not available ({}).", alg, getAlgorithmIdentifier(), ExceptionHelp.toStringWithCauses(e));
+            return false;
+        }
     }
 
     AesKeyWrapManagementAlgorithm setUseGeneralProviderContext()
