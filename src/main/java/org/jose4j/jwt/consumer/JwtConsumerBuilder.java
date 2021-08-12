@@ -344,7 +344,7 @@ public class JwtConsumerBuilder
      * Set the DecryptionKeyResolver to use to select the key for JWE decryption.
      * A DecryptionKeyResolver enables a decryption key to be chosen dynamically based on more
      * information, like the JWE headers, about the message being processed.
-     * @param decryptionKeyResolver the VerificationKeyResolver
+     * @param decryptionKeyResolver the DecryptionKeyResolver
      * @return the same JwtConsumerBuilder
      * @see org.jose4j.keys.resolvers.JwksDecryptionKeyResolver
      */
