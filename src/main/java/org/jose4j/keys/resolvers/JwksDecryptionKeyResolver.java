@@ -33,6 +33,7 @@ public class JwksDecryptionKeyResolver implements DecryptionKeyResolver
 {
     private List<JsonWebKey> jsonWebKeys;
     private DecryptionJwkSelector selector = new DecryptionJwkSelector();
+    boolean disambiguateWithAttemptDecrypt;
 
     public JwksDecryptionKeyResolver(List<JsonWebKey> jsonWebKeys)
     {
@@ -45,7 +46,7 @@ public class JwksDecryptionKeyResolver implements DecryptionKeyResolver
         JsonWebKey selected;
         try
         {
-            selected = selector.select(jwe, jsonWebKeys);
+            selected = disambiguateWithAttemptDecrypt ? selector.selectWithAttemptDecryptDisambiguate(jwe, jsonWebKeys) : selector.select(jwe, jsonWebKeys);
         }
         catch (JoseException e)
         {
@@ -64,5 +65,14 @@ public class JwksDecryptionKeyResolver implements DecryptionKeyResolver
         }
 
         return selected instanceof PublicJsonWebKey ? ((PublicJsonWebKey) selected).getPrivateKey() : selected.getKey();
+    }
+
+    /**
+     * Indicates whether to try decrypting to disambiguate when the normal key selection based on the JWE headers results in more than one key. Default is false.
+     * @param disambiguateWithAttemptDecrypt boolean indicating whether to use decrypting to disambiguate
+     */
+    public void setDisambiguateWithAttemptDecrypt(boolean disambiguateWithAttemptDecrypt)
+    {
+        this.disambiguateWithAttemptDecrypt = disambiguateWithAttemptDecrypt;
     }
 }
