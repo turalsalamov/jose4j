@@ -16,6 +16,7 @@
 package org.jose4j.jwt.consumer;
 
 import org.hamcrest.CoreMatchers;
+import org.jose4j.jwa.JceProviderTestSupport;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.JsonWebEncryption;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
@@ -243,40 +244,49 @@ public class JwksDecryptionKeyResolverUsingJwtConsumerTest
         String jwee1 = "eyJhbGciOiJFQ0RILUVTK0ExMjhLVyIsImVuYyI6IkExMjhHQ00iLCJlcGsiOnsia3R5IjoiRUMiLCJ4IjoiNGUxaFNtaG1wUkFTQWU0SGZvNnRWbFlUbmhIazhXU3RWN3JhdXowSERmdyIsInkiOiJqY2xlM1I3UW9heU1STEdkU3RVRnRXa19tbEFRcDdnUjRzMmlUSW9oUFk0IiwiY3J2IjoiUC0yNTYifX0.sYGf24IFPG3CpVZNAK6ApOKu6-xO7R7y.sK0Sh40MFYIRPF0j.iZRU7bUnWlMW7XT_.gDIU8HHyNxf7HORt6b8NfQ";
         String jwee2 = "eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOEdDTSIsImVwayI6eyJrdHkiOiJFQyIsIngiOiJCM1FfY2xpV2FDMXlJVy0zZmZkY3hUNUx4eDlwMEtLWjIzOFF2aDRaM0JVIiwieSI6InVwdTRqMkJrMHE4a09JSEVGdGxLNF9ZZE9LRHBNbHNJNlBiUTZpM0dfOGciLCJjcnYiOiJQLTI1NiJ9fQ..UThHTj4NK_nuFTlN.3jZICW52F3hFd_jg.RJxLHhVO_-EJYYWrui3CWw";
 
-        ArrayList<String> jwes = new ArrayList<>(Arrays.asList(jwee1, jwee2, jwer1, jwer2, jwer3, jwer4));
+        final ArrayList<String> jwes = new ArrayList<>(Arrays.asList(jwee1, jwee2, jwer1, jwer2, jwer3, jwer4));
         Collections.shuffle(jwes);
 
-        JwksDecryptionKeyResolver decryptionKeyResolver = new JwksDecryptionKeyResolver(jsonWebKeys);
+        final JwksDecryptionKeyResolver decryptionKeyResolver = new JwksDecryptionKeyResolver(jsonWebKeys);
         decryptionKeyResolver.setDisambiguateWithAttemptDecrypt(true);
 
-        for (String jwe : jwes)
+        JceProviderTestSupport jceProviderTestSupport = new JceProviderTestSupport();
+        jceProviderTestSupport.setEncryptionAlgsNeeded(ContentEncryptionAlgorithmIdentifiers.AES_128_GCM);
+        jceProviderTestSupport.runWithBouncyCastleProviderIfNeeded(new JceProviderTestSupport.RunnableTest()
         {
-            JwtConsumer jwtConsumer = new JwtConsumerBuilder()
-                    .setSkipAllValidators()
-                    .setDisableRequireSignature()
-                    .setDecryptionKeyResolver(decryptionKeyResolver)
-                    .build();
+            @Override
+            public void runTest() throws Exception
+            {
+                for (String jwe : jwes)
+                {
+                    JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                            .setSkipAllValidators()
+                            .setDisableRequireSignature()
+                            .setDecryptionKeyResolver(decryptionKeyResolver)
+                            .build();
 
-            JwtClaims jwtClaims = jwtConsumer.processToClaims(jwe);
-            assertThat(jwtClaims.getIssuer(), is(notNullValue()));
-        }
+                    JwtClaims jwtClaims = jwtConsumer.processToClaims(jwe);
+                    assertThat(jwtClaims.getIssuer(), is(notNullValue()));
+                }
 
-        String jwer4bad = "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkExMjhHQ00ifQ.Ac5pGgt-UTQYOQBO4Z-sABTVhrSr70xjotF0FMXWFqUB4iyoihdLRBTnrpjTb6o-orOqA6EMsv6oDZZelSn3J5Ul-cJSPibXuehlX9VQkZv4NDhP38sUeuXNp0IDtNcJeX2tFI2t6W2uFrCYwIkvh8f8bKHR_yUZslFBWAXRwLX9H2PjyQLXhir3hM1SAOKrQQVjaoPOum1n-3F6p_fh8gZYaxVJiJ2Yq9kdqVwY1wjsEq5sq8JN3j8szfE1GBVYHQhdn2I96bpX9OI97ma-XDIZwmQRgHT1mMByhbTG1SzQiIOc4CXGp5b5zER8j55MVZYB0L3iPYVEELY5YjWULc8XTUeSkejvH3ENuckqBoMijx3vb3N3XUFvY1IW6l0DecXEbv87ead-qSRoCNWKsZKtNX457jhtl9xXO0lrjT5kB_D9z_0SbT2X7ffsZ4vMGBbzsII-Ip_cWwl8xYXxwy9OGVsiRt1F0q1JgtNS35lNP9hZvDJksWPo77ebqXEw.ocPwwRIpGacR3VO1.-XXqFCYM6zkOTl3j.hOTzs7STvZrH3Agtm4DoNg";
-        try
-        {
-            JwtConsumer jwtConsumer = new JwtConsumerBuilder()
-                    .setSkipAllValidators()
-                    .setDisableRequireSignature()
-                    .setDecryptionKeyResolver(decryptionKeyResolver)
-                    .build();
+                String jwer4bad = "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkExMjhHQ00ifQ.Ac5pGgt-UTQYOQBO4Z-sABTVhrSr70xjotF0FMXWFqUB4iyoihdLRBTnrpjTb6o-orOqA6EMsv6oDZZelSn3J5Ul-cJSPibXuehlX9VQkZv4NDhP38sUeuXNp0IDtNcJeX2tFI2t6W2uFrCYwIkvh8f8bKHR_yUZslFBWAXRwLX9H2PjyQLXhir3hM1SAOKrQQVjaoPOum1n-3F6p_fh8gZYaxVJiJ2Yq9kdqVwY1wjsEq5sq8JN3j8szfE1GBVYHQhdn2I96bpX9OI97ma-XDIZwmQRgHT1mMByhbTG1SzQiIOc4CXGp5b5zER8j55MVZYB0L3iPYVEELY5YjWULc8XTUeSkejvH3ENuckqBoMijx3vb3N3XUFvY1IW6l0DecXEbv87ead-qSRoCNWKsZKtNX457jhtl9xXO0lrjT5kB_D9z_0SbT2X7ffsZ4vMGBbzsII-Ip_cWwl8xYXxwy9OGVsiRt1F0q1JgtNS35lNP9hZvDJksWPo77ebqXEw.ocPwwRIpGacR3VO1.-XXqFCYM6zkOTl3j.hOTzs7STvZrH3Agtm4DoNg";
+                try
+                {
+                    JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                            .setSkipAllValidators()
+                            .setDisableRequireSignature()
+                            .setDecryptionKeyResolver(decryptionKeyResolver)
+                            .build();
 
-            JwtClaims claims = jwtConsumer.processToClaims(jwer4bad);
-            fail("shouldn't have processed/validated but got " + claims);
-        }
-        catch (InvalidJwtException e)
-        {
-            log.debug("this was expected and is okay: {}", e.toString());
-        }
+                    JwtClaims claims = jwtConsumer.processToClaims(jwer4bad);
+                    fail("shouldn't have processed/validated but got " + claims);
+                }
+                catch (InvalidJwtException e)
+                {
+                    log.debug("this was expected and is okay: {}", e.toString());
+                }
+            }
+        });
     }
 
     @Test
