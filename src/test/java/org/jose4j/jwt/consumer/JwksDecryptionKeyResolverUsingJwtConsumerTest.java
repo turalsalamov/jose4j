@@ -16,8 +16,13 @@
 package org.jose4j.jwt.consumer;
 
 import org.hamcrest.CoreMatchers;
+import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
+import org.jose4j.jwe.JsonWebEncryption;
+import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
+import org.jose4j.jwk.OctJwkGenerator;
+import org.jose4j.jwk.OctetSequenceJsonWebKey;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.NumericDate;
@@ -241,11 +246,11 @@ public class JwksDecryptionKeyResolverUsingJwtConsumerTest
         ArrayList<String> jwes = new ArrayList<>(Arrays.asList(jwee1, jwee2, jwer1, jwer2, jwer3, jwer4));
         Collections.shuffle(jwes);
 
+        JwksDecryptionKeyResolver decryptionKeyResolver = new JwksDecryptionKeyResolver(jsonWebKeys);
+        decryptionKeyResolver.setDisambiguateWithAttemptDecrypt(true);
+
         for (String jwe : jwes)
         {
-            JwksDecryptionKeyResolver decryptionKeyResolver = new JwksDecryptionKeyResolver(jsonWebKeys);
-            decryptionKeyResolver.setDisambiguateWithAttemptDecrypt(true);
-
             JwtConsumer jwtConsumer = new JwtConsumerBuilder()
                     .setSkipAllValidators()
                     .setDisableRequireSignature()
@@ -255,6 +260,102 @@ public class JwksDecryptionKeyResolverUsingJwtConsumerTest
             JwtClaims jwtClaims = jwtConsumer.processToClaims(jwe);
             assertThat(jwtClaims.getIssuer(), is(notNullValue()));
         }
+
+        String jwer4bad = "eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkExMjhHQ00ifQ.Ac5pGgt-UTQYOQBO4Z-sABTVhrSr70xjotF0FMXWFqUB4iyoihdLRBTnrpjTb6o-orOqA6EMsv6oDZZelSn3J5Ul-cJSPibXuehlX9VQkZv4NDhP38sUeuXNp0IDtNcJeX2tFI2t6W2uFrCYwIkvh8f8bKHR_yUZslFBWAXRwLX9H2PjyQLXhir3hM1SAOKrQQVjaoPOum1n-3F6p_fh8gZYaxVJiJ2Yq9kdqVwY1wjsEq5sq8JN3j8szfE1GBVYHQhdn2I96bpX9OI97ma-XDIZwmQRgHT1mMByhbTG1SzQiIOc4CXGp5b5zER8j55MVZYB0L3iPYVEELY5YjWULc8XTUeSkejvH3ENuckqBoMijx3vb3N3XUFvY1IW6l0DecXEbv87ead-qSRoCNWKsZKtNX457jhtl9xXO0lrjT5kB_D9z_0SbT2X7ffsZ4vMGBbzsII-Ip_cWwl8xYXxwy9OGVsiRt1F0q1JgtNS35lNP9hZvDJksWPo77ebqXEw.ocPwwRIpGacR3VO1.-XXqFCYM6zkOTl3j.hOTzs7STvZrH3Agtm4DoNg";
+        try
+        {
+            JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                    .setSkipAllValidators()
+                    .setDisableRequireSignature()
+                    .setDecryptionKeyResolver(decryptionKeyResolver)
+                    .build();
+
+            JwtClaims claims = jwtConsumer.processToClaims(jwer4bad);
+            fail("shouldn't have processed/validated but got " + claims);
+        }
+        catch (InvalidJwtException e)
+        {
+            log.debug("this was expected and is okay: {}", e.toString());
+        }
+    }
+
+    @Test
+    public void simpleSymmetricDecryptionKeysWithDisambiguate() throws Exception
+    {
+        List<JsonWebKey> keys = new ArrayList<>();
+        OctetSequenceJsonWebKey jwk = OctJwkGenerator.generateJwk(256);
+        jwk.setKeyId("1");
+        keys.add(jwk);
+        jwk = OctJwkGenerator.generateJwk(256);
+        jwk.setKeyId("2");
+        keys.add(jwk);
+        jwk = OctJwkGenerator.generateJwk(256);
+        jwk.setKeyId("3");
+        keys.add(jwk);
+        jwk = OctJwkGenerator.generateJwk(256);
+        jwk.setKeyId("4");
+        keys.add(jwk);
+        jwk = OctJwkGenerator.generateJwk(256);
+        jwk.setKeyId("5");
+        keys.add(jwk);
+        jwk = OctJwkGenerator.generateJwk(256);
+        jwk.setKeyId("6");
+        keys.add(jwk);
+
+        List<String> jwes = new ArrayList<>();
+
+        for (JsonWebKey jsonWebKey : keys)
+        {
+            String jwe = makeSimpleSymmetricJwe(jsonWebKey);
+            jwes.add(jwe);
+        }
+
+        JwksDecryptionKeyResolver decryptionKeyResolver = new JwksDecryptionKeyResolver(keys);
+        decryptionKeyResolver.setDisambiguateWithAttemptDecrypt(true);
+
+        for (String jwe : jwes)
+        {
+            JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                    .setSkipAllValidators()
+                    .setDisableRequireSignature()
+                    .setDecryptionKeyResolver(decryptionKeyResolver)
+                    .build();
+
+            JwtClaims jwtClaims = jwtConsumer.processToClaims(jwe);
+            assertThat(jwtClaims.getIssuer(), is(notNullValue()));
+        }
+
+        jwk = OctJwkGenerator.generateJwk(256);
+        jwk.setKeyId("nope");
+        String jwe = makeSimpleSymmetricJwe(jwk);
+
+
+        try
+        {
+            JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                    .setSkipAllValidators()
+                    .setDisableRequireSignature()
+                    .setDecryptionKeyResolver(decryptionKeyResolver)
+                    .build();
+
+            JwtClaims claims = jwtConsumer.processToClaims(jwe);
+            fail("shouldn't have processed/validated but got " + claims);
+        }
+        catch (InvalidJwtException e)
+        {
+            log.debug("this was expected and is okay: {}", e.toString());
+        }
+
+    }
+
+    private String makeSimpleSymmetricJwe(JsonWebKey jsonWebKey) throws JoseException
+    {
+        JsonWebEncryption jwe = new JsonWebEncryption();
+        jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.DIRECT);
+        jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
+        jwe.setPayload("{\"iss\":\"made w/ kid "+ jsonWebKey.getKeyId()+"\"}");
+        jwe.setKey(jsonWebKey.getKey());
+        return jwe.getCompactSerialization();
     }
 
 }

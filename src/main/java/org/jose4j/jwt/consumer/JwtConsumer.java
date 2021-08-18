@@ -236,13 +236,6 @@ public class JwtConsumer
                 {
                     JsonWebEncryption jwe = (JsonWebEncryption) currentJoseObject;
 
-                    Key key = decryptionKeyResolver.resolveKey(jwe, nestingContext);
-                    if (key != null && !key.equals(jwe.getKey()))
-                    {
-                        List<ErrorCodeValidator.Error> errors = Collections.singletonList(new ErrorCodeValidator.Error(MISCELLANEOUS, "Key resolution problem."));
-                        throw new InvalidJwtException("The resolved decryption key is different than the one originally used to decrypt the JWE.", errors, jwtContext);
-                    }
-
                     if (jweAlgorithmConstraints != null)
                     {
                         jweAlgorithmConstraints.checkConstraint(jwe.getAlgorithmHeaderValue());

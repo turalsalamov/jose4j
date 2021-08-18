@@ -318,17 +318,6 @@ public class JwtConsumerTest
                 .setExpectedIssuer("joe");
         jwtConsumer = builder.build();
         SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext,  jwtConsumer);
-
-        builder = new JwtConsumerBuilder()
-                .setDecryptionKey(ExampleRsaKeyFromJws.PRIVATE_KEY)
-                .setEnableRequireEncryption()
-                .setVerificationKey(verificationKey)
-                .setRequireExpirationTime()
-                .setEvaluationTime(NumericDate.fromSeconds(1300819380))
-                .setAllowedClockSkewInSeconds(30)
-                .setExpectedIssuer("joe");
-        jwtConsumer = builder.build();
-        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtContext,  jwtConsumer);  // already decrypted but different key so seems good to fail
     }
 
     @Test

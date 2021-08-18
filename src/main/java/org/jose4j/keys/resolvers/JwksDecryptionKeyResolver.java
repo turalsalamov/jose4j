@@ -31,8 +31,8 @@ import java.util.List;
  */
 public class JwksDecryptionKeyResolver implements DecryptionKeyResolver
 {
-    private List<JsonWebKey> jsonWebKeys;
-    private DecryptionJwkSelector selector = new DecryptionJwkSelector();
+    private final List<JsonWebKey> jsonWebKeys;
+    private final DecryptionJwkSelector selector = new DecryptionJwkSelector();
     boolean disambiguateWithAttemptDecrypt;
 
     public JwksDecryptionKeyResolver(List<JsonWebKey> jsonWebKeys)
@@ -46,7 +46,26 @@ public class JwksDecryptionKeyResolver implements DecryptionKeyResolver
         JsonWebKey selected;
         try
         {
-            selected = disambiguateWithAttemptDecrypt ? selector.selectWithAttemptDecryptDisambiguate(jwe, jsonWebKeys) : selector.select(jwe, jsonWebKeys);
+            List<JsonWebKey> selectedList = selector.selectList(jwe, this.jsonWebKeys);
+            if (selectedList.isEmpty())
+            {
+                selected = null;
+            }
+            else if (selectedList.size() == 1 || !disambiguateWithAttemptDecrypt)
+            {
+                selected = selectedList.get(0);
+            }
+            else
+            {
+                selected = selector.attemptDecryptDisambiguate(jwe, selectedList);
+                if (selected == null)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("Unable to find a suitable key for JWE w/ header ").append(jwe.getHeaders().getFullHeaderAsJsonString());
+                    sb.append(" using attempted decryption to disambiguate from filtered candidate JWKs ").append(jsonWebKeys);
+                    throw new UnresolvableKeyException(sb.toString());
+                }
+            }
         }
         catch (JoseException e)
         {

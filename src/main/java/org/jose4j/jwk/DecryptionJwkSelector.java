@@ -22,7 +22,7 @@ import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.PrivateKey;
+import java.security.Key;
 import java.util.Collection;
 import java.util.List;
 
@@ -45,43 +45,38 @@ public class DecryptionJwkSelector
         return filter.filter(keys);
     }
 
-    public JsonWebKey selectWithAttemptDecryptDisambiguate(JsonWebEncryption jwe, Collection<JsonWebKey> keys) throws JoseException
+    public JsonWebKey attemptDecryptDisambiguate(JsonWebEncryption jwe, List<JsonWebKey> jsonWebKeys)
     {
-        List<JsonWebKey> jsonWebKeys = selectList(jwe, keys);
-        if (jsonWebKeys.isEmpty())
+        for (JsonWebKey jwk : jsonWebKeys)
         {
-            return null;
-        }
-        else if (jsonWebKeys.size() == 1)
-        {
-            return jsonWebKeys.get(0);
-        }
-        else
-        {
-            for (JsonWebKey jwk : jsonWebKeys)
+            Key key;
+            if (jwk instanceof PublicJsonWebKey)
             {
-                if (jwk instanceof PublicJsonWebKey)
-                {
-                    PublicJsonWebKey publicJwk = (PublicJsonWebKey) jwk;
-                    PrivateKey privateKey = publicJwk.getPrivateKey();
-                    if (privateKey != null)
+                PublicJsonWebKey publicJwk = (PublicJsonWebKey) jwk;
+                key = publicJwk.getPrivateKey();
+            }
+            else
+            {
+                key = jwk.getKey();
+            }
+
+            if (key != null)
+            {
+                jwe.setKey(key);
+                try {
+                    byte[] plaintextBytes = jwe.getPlaintextBytes();
+                    if (plaintextBytes != null)
                     {
-                        jwe.setKey(privateKey);
-                        try {
-                            byte[] plaintextBytes = jwe.getPlaintextBytes();
-                            if (plaintextBytes != null)
-                            {
-                                return jwk;
-                            }
-                        }
-                        catch (JoseException e)
-                        {
-                            log.debug("Not using key (kid={}) b/c attempt to decrypt failed trying to disambiguate ({}).", jwk.getKeyId(), ExceptionHelp.toStringWithCauses(e));
-                        }
+                        return jwk;
                     }
+                }
+                catch (JoseException e)
+                {
+                    log.debug("Not using key (kid={}) b/c attempt to decrypt failed trying to disambiguate ({}).", jwk.getKeyId(), ExceptionHelp.toStringWithCauses(e));
                 }
             }
         }
+
         return null;
     }
 }
