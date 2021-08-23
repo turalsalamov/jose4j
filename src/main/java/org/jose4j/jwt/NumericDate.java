@@ -93,7 +93,7 @@ public class NumericDate
     {
         long secs = getValue();
         long millis = secs * CONVERSION;
-        return  (! ((secs > 0 && millis < secs) || (secs < 0 && millis > secs) || (secs == 0 & millis != 0)));
+        return  (! ((secs > 0 && millis < secs) || (secs < 0 && millis > secs) || (secs == 0 && millis != 0)));
     }
 
     public boolean isBefore(NumericDate when)
