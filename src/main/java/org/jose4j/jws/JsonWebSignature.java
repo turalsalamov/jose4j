@@ -67,6 +67,7 @@ public class JsonWebSignature extends JsonWebStructure
     public void setPayload(String payload)
     {
         this.payloadBytes = StringUtil.getBytesUnchecked(payload, payloadCharEncoding);
+        this.encodedPayload = null;
     }
 
     /**
