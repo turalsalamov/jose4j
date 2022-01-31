@@ -131,7 +131,7 @@ public class HttpsJwks
     /**
      * Gets the JSON Web Keys from the JWKS endpoint location or from local cache, if appropriate.
      * @return a list of JsonWebKeys
-     * @throws JoseException if an problem is encountered parsing the JSON content into JSON Web Keys.
+     * @throws JoseException if a problem is encountered parsing the JSON content into JSON Web Keys.
      * @throws IOException if a problem is encountered making the HTTP request.
      */
     public List<JsonWebKey> getJsonWebKeys() throws JoseException, IOException
