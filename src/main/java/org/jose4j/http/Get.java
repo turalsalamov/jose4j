@@ -53,14 +53,13 @@ public class Get implements SimpleGet
     private HostnameVerifier hostnameVerifier;
     private int responseBodySizeLimit = 1024 * 512;
     private Proxy proxy;
-    private boolean disableServerSideCache= false;
 
     @Override
     public SimpleResponse get(String location) throws IOException
     {
         int attempts = 0;
         log.debug("HTTP GET of {}", location);
-        URL url = this.disableServerSideCache? addRandomParamToURL(location) : new URL(location);
+        URL url = new URL(location);
         while (true)
         {
             try
@@ -115,20 +114,6 @@ public class Get implements SimpleGet
         // For http 1.0
         urlConnection.setRequestProperty("Pragma", "no-cache");
         urlConnection.setRequestProperty("Expires", "0");
-    }
-
-    private URL addRandomParamToURL(String location) throws IOException {
-        try {
-            URI currentUri = new URI(location);
-            String currentUriQuery = currentUri.getQuery();
-            String randomQueryParam = "_="+ UUID.randomUUID();
-            currentUriQuery= (currentUriQuery == null) ? randomQueryParam: currentUriQuery+"&" + randomQueryParam;
-            return new URI(currentUri.getScheme(), currentUri.getAuthority(),
-                    currentUri.getPath(), currentUriQuery, currentUri.getFragment()).toURL();
-        } catch (URISyntaxException  uriSyntaxException) {
-            throw new IOException("Malformed URI exception", uriSyntaxException);
-        }
-
     }
 
     private String getBody(URLConnection urlConnection, String charset) throws IOException
@@ -209,14 +194,6 @@ public class Get implements SimpleGet
         {
             return initialRetryWaitTime;
         }
-    }
-
-    /**
-     * Sets whether a server cache should be disabled
-     * @param disableServerSideCache true to disable the remote server side cache
-     */
-    public void setDisableServerSideCache(boolean disableServerSideCache) {
-        this.disableServerSideCache = disableServerSideCache;
     }
 
     /**
