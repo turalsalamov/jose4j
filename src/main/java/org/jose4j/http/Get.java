@@ -23,7 +23,10 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.*;
 
 import java.io.*;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -31,7 +34,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  *  An implantation of SimpleGet (used by {@link org.jose4j.jwk.HttpsJwks}) that
