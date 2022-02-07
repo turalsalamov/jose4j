@@ -23,10 +23,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.*;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.Proxy;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -34,10 +31,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  *  An implantation of SimpleGet (used by {@link org.jose4j.jwk.HttpsJwks}) that
@@ -59,13 +53,14 @@ public class Get implements SimpleGet
     private HostnameVerifier hostnameVerifier;
     private int responseBodySizeLimit = 1024 * 512;
     private Proxy proxy;
+    private boolean disableServerSideCache= false;
 
     @Override
     public SimpleResponse get(String location) throws IOException
     {
         int attempts = 0;
         log.debug("HTTP GET of {}", location);
-        URL url = new URL(location);
+        URL url = this.disableServerSideCache? addRandomParamToURL(location) : new URL(location);
         while (true)
         {
             try
@@ -73,6 +68,7 @@ public class Get implements SimpleGet
                 URLConnection urlConnection = (proxy == null) ? url.openConnection() : url.openConnection(proxy);
                 urlConnection.setConnectTimeout(connectTimeout);
                 urlConnection.setReadTimeout(readTimeout);
+                preventHttpCaching(urlConnection);
 
                 setUpTls(urlConnection);
 
@@ -110,6 +106,29 @@ public class Get implements SimpleGet
                 try { Thread.sleep(retryWaitTime); } catch (InterruptedException ie) { /* ignore */ }
             }
         }
+    }
+
+    private void preventHttpCaching(URLConnection urlConnection) {
+        urlConnection.setUseCaches(false);
+        // For http 1.1
+        urlConnection.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
+        // For http 1.0
+        urlConnection.setRequestProperty("Pragma", "no-cache");
+        urlConnection.setRequestProperty("Expires", "0");
+    }
+
+    private URL addRandomParamToURL(String location) throws IOException {
+        try {
+            URI currentUri = new URI(location);
+            String currentUriQuery = currentUri.getQuery();
+            String randomQueryParam = "_="+ UUID.randomUUID();
+            currentUriQuery= (currentUriQuery == null) ? randomQueryParam: currentUriQuery+"&" + randomQueryParam;
+            return new URI(currentUri.getScheme(), currentUri.getAuthority(),
+                    currentUri.getPath(), currentUriQuery, currentUri.getFragment()).toURL();
+        } catch (URISyntaxException  uriSyntaxException) {
+            throw new IOException("Malformed URI exception", uriSyntaxException);
+        }
+
     }
 
     private String getBody(URLConnection urlConnection, String charset) throws IOException
@@ -190,6 +209,14 @@ public class Get implements SimpleGet
         {
             return initialRetryWaitTime;
         }
+    }
+
+    /**
+     * Sets whether a server cache should be disabled
+     * @param disableServerSideCache true to disable the remote server side cache
+     */
+    public void setDisableServerSideCache(boolean disableServerSideCache) {
+        this.disableServerSideCache = disableServerSideCache;
     }
 
     /**

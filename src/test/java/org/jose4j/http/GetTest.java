@@ -106,6 +106,7 @@ public class GetTest
         get.setReadTimeout(200);
         get.setRetries(5);
         get.setProgressiveRetryWait(true);
+        get.setDisableServerSideCache(true);
         SimpleResponse simpleResponse = get.get(location);
         System.out.println(simpleResponse);
     }
