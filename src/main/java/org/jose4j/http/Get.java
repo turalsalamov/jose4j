@@ -115,11 +115,7 @@ public class Get implements SimpleGet
 
     private void preventHttpCaching(URLConnection urlConnection) {
         urlConnection.setUseCaches(false);
-        // For http 1.1
-        urlConnection.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
-        // For http 1.0
-        urlConnection.setRequestProperty("Pragma", "no-cache");
-        urlConnection.setRequestProperty("Expires", "0");
+        urlConnection.setRequestProperty("Cache-Control", "no-cache");
     }
 
     private String getBody(URLConnection urlConnection, String charset) throws IOException
