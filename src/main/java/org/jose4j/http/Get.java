@@ -73,6 +73,7 @@ public class Get implements SimpleGet
                 URLConnection urlConnection = (proxy == null) ? url.openConnection() : url.openConnection(proxy);
                 urlConnection.setConnectTimeout(connectTimeout);
                 urlConnection.setReadTimeout(readTimeout);
+                preventHttpCaching(urlConnection);
 
                 setUpTls(urlConnection);
 
@@ -110,6 +111,11 @@ public class Get implements SimpleGet
                 try { Thread.sleep(retryWaitTime); } catch (InterruptedException ie) { /* ignore */ }
             }
         }
+    }
+
+    private void preventHttpCaching(URLConnection urlConnection) {
+        urlConnection.setUseCaches(false);
+        urlConnection.setRequestProperty("Cache-Control", "no-cache");
     }
 
     private String getBody(URLConnection urlConnection, String charset) throws IOException
