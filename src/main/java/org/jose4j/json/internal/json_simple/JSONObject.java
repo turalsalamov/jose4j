@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * A JSON object. Key value pairs are unordered. JSONObject supports java.util.Map interface.
  * 
- * @author (originally) FangYidong<fangyidong@yahoo.com.cn>
+ * @author (originally) FangYidong fangyidong@yahoo.com.cn
  */
 public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAware{
 	
@@ -29,7 +29,7 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
 	 * Allows creation of a JSONObject from a Map. After that, both the
 	 * generated JSONObject and the Map can be modified independently.
 	 * 
-	 * @param map
+	 * @param map Map
 	 */
 	public JSONObject(Map map) {
 		super(map);
@@ -42,8 +42,9 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
      * 
      * @see org.jose4j.json.internal.json_simple.JSONValue#writeJSONString(Object, Writer)
      * 
-     * @param map
-     * @param out
+     * @param map Map
+     * @param out Writer
+	 * @throws IOException IOException
      */
 	public static void writeJSONString(Map map, Writer out) throws IOException {
 		if(map == null){
@@ -80,7 +81,7 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
 	 * 
 	 * @see org.jose4j.json.internal.json_simple.JSONValue#toJSONString(Object)
 	 * 
-	 * @param map
+	 * @param map Map
 	 * @return JSON text, or "null" if map is null.
 	 */
 	public static String toJSONString(Map map){
@@ -123,7 +124,7 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
 	 * 
 	 * @see org.jose4j.json.internal.json_simple.JSONValue#escape(String)
 	 * 
-	 * @param s
+	 * @param s String
 	 * @return string
 	 */
 	public static String escape(String s){

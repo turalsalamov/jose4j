@@ -130,6 +130,7 @@ public abstract class PublicJsonWebKey extends JsonWebKey
 
     /**
      * @deprecated as of 0.3.2 use {@link #toJson(org.jose4j.jwk.JsonWebKey.OutputControlLevel)}
+     * @param writeOutPrivateKeyToJson don't use this
      */
     public void setWriteOutPrivateKeyToJson(boolean writeOutPrivateKeyToJson)
     {

@@ -78,6 +78,7 @@ public abstract class JsonWebKey implements Serializable
 
     /**
      * @deprecated deprecated in favor {@link #getKey()} or {@link PublicJsonWebKey#getPublicKey()}
+     * @return PublicKey
      */
     public PublicKey getPublicKey()
     {

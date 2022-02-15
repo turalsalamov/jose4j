@@ -138,7 +138,7 @@ public class JsonWebSignature extends JsonWebStructure
      * BASE64URL(JWS Signature)
      * </p>
      * @return the Compact Serialization: the encoded header + "." + the encoded payload + "." + the encoded signature
-     * @throws JoseException
+     * @throws JoseException if an error condition is encountered during the process
      */
     public String getCompactSerialization() throws JoseException
     {
@@ -351,6 +351,7 @@ public class JsonWebSignature extends JsonWebStructure
      * verified when calling this method.
      * Use {@link #setPayloadCharEncoding(String)} before calling this method, to use a character
      * encoding other than UTF-8.
+     * @return the JWS payload
      */
     public String getUnverifiedPayload()
     {

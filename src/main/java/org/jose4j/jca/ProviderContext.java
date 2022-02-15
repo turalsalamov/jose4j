@@ -114,6 +114,7 @@ public class ProviderContext
         /**
          *  Gets the general JCA provider to be used for all relevant operations when
          *  a more specific one isn't set.
+         * @return the general JCA provider name
          */
         public String getGeneralProvider()
         {

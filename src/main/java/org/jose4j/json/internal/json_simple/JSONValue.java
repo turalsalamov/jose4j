@@ -18,7 +18,7 @@ import org.jose4j.json.internal.json_simple.parser.ParseException;
 
 
 /**
- * @author (originally) FangYidong<fangyidong@yahoo.com.cn>
+ * @author (originally) FangYidong fangyidong@yahoo.com.cn
  */
 public class JSONValue {
 	/**
@@ -28,7 +28,7 @@ public class JSONValue {
 	 * @see org.jose4j.json.internal.json_simple.parser.JSONParser#parse(Reader)
 	 * @see #parseWithException(Reader)
 	 * 
-	 * @param in
+	 * @param in Reader
 	 * @return Instance of the following:
 	 *	org.jose4j.json.org.json.json_simple.JSONObject,
 	 * 	org.jose4j.json.org.json.json_simple.JSONArray,
@@ -58,7 +58,7 @@ public class JSONValue {
 	 * @see org.jose4j.json.internal.json_simple.parser.JSONParser#parse(Reader)
 	 * @see #parseWithException(Reader)
 	 * 
-	 * @param s
+	 * @param s String
 	 * @return Instance of the following:
 	 *	org.jose4j.json.org.json.json_simple.JSONObject,
 	 * 	org.jose4j.json.org.json.json_simple.JSONArray,
@@ -81,7 +81,7 @@ public class JSONValue {
 	 * 
 	 * @see org.jose4j.json.internal.json_simple.parser.JSONParser
 	 * 
-	 * @param in
+	 * @param in Reader
 	 * @return Instance of the following:
 	 * 	org.jose4j.json.org.json.json_simple.JSONObject,
 	 * 	org.jose4j.json.org.json.json_simple.JSONArray,
@@ -90,8 +90,8 @@ public class JSONValue {
 	 * 	java.lang.Boolean,
 	 * 	null
 	 * 
-	 * @throws IOException
-	 * @throws ParseException
+	 * @throws IOException IOException
+	 * @throws ParseException ParseException
 	 */
 	public static Object parseWithException(Reader in) throws IOException, ParseException{
 		JSONParser parser=new JSONParser();
@@ -114,8 +114,9 @@ public class JSONValue {
      * @see org.jose4j.json.internal.json_simple.JSONObject#writeJSONString(Map, Writer)
      * @see org.jose4j.json.internal.json_simple.JSONArray#writeJSONString(Collection, Writer)
      * 
-     * @param value
-     * @param out
+     * @param value value
+     * @param out  Writer
+	 * @throws IOException IOException
      */
 	public static void writeJSONString(Object value, Writer out) throws IOException {
 		if(value == null){
@@ -235,7 +236,7 @@ public class JSONValue {
 	 * @see org.jose4j.json.internal.json_simple.JSONObject#toJSONString(Map)
 	 * @see org.jose4j.json.internal.json_simple.JSONArray#toJSONString(Collection)
 	 * 
-	 * @param value
+	 * @param value Object
 	 * @return JSON text, or "null" if value is null or it's an NaN or an INF number.
 	 */
 	public static String toJSONString(Object value){
@@ -252,7 +253,7 @@ public class JSONValue {
 
 	/**
 	 * Escape quotes, \, /, \r, \n, \b, \f, \t and other control characters (U+0000 through U+001F).
-	 * @param s
+	 * @param s String
 	 * @return string
 	 */
 	public static String escape(String s){

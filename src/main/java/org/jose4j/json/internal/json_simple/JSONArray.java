@@ -14,7 +14,7 @@ import java.util.Iterator;
 /**
  * A JSON array. JSONObject supports java.util.List interface.
  * 
- * @author (originally) FangYidong<fangyidong@yahoo.com.cn>
+ * @author (originally) FangYidong fangyidong@yahoo.com.cn
  */
 public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
 	private static final long serialVersionUID = 3957988303675231981L;
@@ -42,8 +42,9 @@ public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
      * 
      * @see org.jose4j.json.internal.json_simple.JSONValue#writeJSONString(Object, Writer)
      * 
-     * @param collection
-     * @param out
+     * @param collection Collection
+     * @param out Writer
+	 * @throws IOException IOException
      */
 	public static void writeJSONString(Collection collection, Writer out) throws IOException{
 		if(collection == null){
@@ -82,7 +83,7 @@ public class JSONArray extends ArrayList implements JSONAware, JSONStreamAware {
 	 * 
 	 * @see org.jose4j.json.internal.json_simple.JSONValue#toJSONString(Object)
 	 * 
-	 * @param collection
+	 * @param collection Collection
 	 * @return JSON text, or "null" if list is null.
 	 */
 	public static String toJSONString(Collection collection){

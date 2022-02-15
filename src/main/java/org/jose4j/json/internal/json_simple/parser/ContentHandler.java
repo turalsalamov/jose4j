@@ -8,7 +8,7 @@ import java.io.IOException;
  * @see org.xml.sax.ContentHandler
  * @see org.jose4j.json.internal.json_simple.parser.JSONParser#parse(java.io.Reader, ContentHandler, boolean)
  * 
- * @author (originally) FangYidong<fangyidong@yahoo.com.cn>
+ * @author (originally) FangYidong fangyidong@yahoo.com.cn
  */
 public interface ContentHandler {
 	/**
@@ -17,13 +17,15 @@ public interface ContentHandler {
      * 
 	 * @throws ParseException 
 	 * 			- JSONParser will stop and throw the same exception to the caller when receiving this exception.
+	 * @throws IOException IOException
 	 */
 	void startJSON() throws ParseException, IOException;
 	
 	/**
 	 * Receive notification of the end of JSON processing.
 	 * 
-	 * @throws ParseException
+	 * @throws ParseException ParseException
+	 * @throws IOException IOException
 	 */
 	void endJSON() throws ParseException, IOException;
 	
@@ -33,6 +35,7 @@ public interface ContentHandler {
 	 * @return false if the handler wants to stop parsing after return.
 	 * @throws ParseException
      *          - JSONParser will stop and throw the same exception to the caller when receiving this exception.
+	 * @throws IOException IOException
      * @see #endJSON
 	 */
 	boolean startObject() throws ParseException, IOException;
@@ -41,7 +44,8 @@ public interface ContentHandler {
 	 * Receive notification of the end of a JSON object.
 	 * 
 	 * @return false if the handler wants to stop parsing after return.
-	 * @throws ParseException
+	 * @throws ParseException ParseException
+	 * @throws IOException IOException
      * 
      * @see #startObject
 	 */
@@ -53,7 +57,8 @@ public interface ContentHandler {
 	 * @param key - Key of a JSON object entry. 
 	 * 
 	 * @return false if the handler wants to stop parsing after return.
-	 * @throws ParseException
+	 * @throws ParseException ParseException
+	 * @throws IOException IOException
      * 
      * @see #endObjectEntry
 	 */
@@ -63,7 +68,8 @@ public interface ContentHandler {
 	 * Receive notification of the end of the value of previous object entry.
 	 * 
 	 * @return false if the handler wants to stop parsing after return.
-	 * @throws ParseException
+	 * @throws ParseException ParseException
+	 * @throws IOException IOException
      * 
      * @see #startObjectEntry
 	 */
@@ -73,8 +79,8 @@ public interface ContentHandler {
 	 * Receive notification of the beginning of a JSON array.
 	 * 
 	 * @return false if the handler wants to stop parsing after return.
-	 * @throws ParseException
-     * 
+	 * @throws ParseException ParseException
+	 * @throws IOException IOException
      * @see #endArray
 	 */
 	boolean startArray() throws ParseException, IOException;
@@ -83,7 +89,8 @@ public interface ContentHandler {
 	 * Receive notification of the end of a JSON array.
 	 * 
 	 * @return false if the handler wants to stop parsing after return.
-	 * @throws ParseException
+	 * @throws ParseException ParseException
+	 * @throws IOException IOException
      * 
      * @see #startArray
 	 */
@@ -103,7 +110,8 @@ public interface ContentHandler {
 	 * 			null
 	 * 
 	 * @return false if the handler wants to stop parsing after return.
-	 * @throws ParseException
+	 * @throws ParseException ParseException
+	 * @throws IOException IOException
 	 */
 	boolean primitive(Object value) throws ParseException, IOException;
 		

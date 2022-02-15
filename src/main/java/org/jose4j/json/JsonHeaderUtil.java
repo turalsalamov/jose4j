@@ -27,6 +27,9 @@ public class JsonHeaderUtil
 {
     /**
      * @deprecated please use JsonUtil
+     * @param jsonString Sting
+     * @return Map
+     * @throws JoseException JoseException
      */
     public static Map<String,Object> parseJson(String jsonString) throws JoseException
     {
@@ -35,6 +38,8 @@ public class JsonHeaderUtil
 
     /**
      * @deprecated please use JsonUtil
+     * @param map Map
+     * @return String
      */
     public static String toJson(Map<String,?> map)
     {

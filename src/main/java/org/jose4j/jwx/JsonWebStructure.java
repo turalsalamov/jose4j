@@ -107,6 +107,7 @@ public abstract class JsonWebStructure
 
     /**
      * @deprecated replaced by {@link #getHeaders()} and {@link org.jose4j.jwx.Headers#getFullHeaderAsJsonString()}
+     * @return the header as JSON
      */
     public String getHeader()
     {

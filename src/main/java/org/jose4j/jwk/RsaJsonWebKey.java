@@ -112,6 +112,7 @@ public class RsaJsonWebKey extends PublicJsonWebKey
 
     /**
      * @deprecated deprecated in favor of the more consistently named {@link #getRsaPublicKey()}
+     * @return RSAPublicKey
      */
     public RSAPublicKey getRSAPublicKey()
     {

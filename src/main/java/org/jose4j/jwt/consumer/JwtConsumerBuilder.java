@@ -385,6 +385,7 @@ public class JwtConsumerBuilder
     }
 
     /**
+     * <p>
      * Set the audience value(s) to use when validating the audience ("aud") claim of a JWT.
      * Audience validation will succeed, if any one of the provided values is equal to any one
      * of the values of the "aud" claim in the JWT.

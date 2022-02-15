@@ -5,7 +5,7 @@
 package org.jose4j.json.internal.json_simple.parser;
 
 /**
- * @author (originally) FangYidong<fangyidong@yahoo.com.cn>
+ * @author (originally) FangYidong fangyidong@yahoo.com.cn
  */
 public class Yytoken {
 	public static final int TYPE_VALUE=0;//JSON primitive value: string,number,boolean,null

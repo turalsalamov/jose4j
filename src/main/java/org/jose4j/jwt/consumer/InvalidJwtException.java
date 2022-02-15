@@ -88,7 +88,7 @@ public class InvalidJwtException extends Exception
     }
 
     /**
-     * Returns a <code>JwtContext</code> object including the <code>JwtClaims<code/>
+     * Returns a <code>JwtContext</code> object including the <code>JwtClaims</code>
      * representing the JWT processed
      * up to the point of this <code>InvalidJwtException</code> being thrown.
      * Some care should be taken when using this because, depending on what kind

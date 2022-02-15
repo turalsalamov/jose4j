@@ -8,7 +8,7 @@ import java.util.Map;
  * 
  * @see org.jose4j.json.internal.json_simple.parser.JSONParser#parse(java.io.Reader, ContainerFactory)
  * 
- * @author (originally) FangYidong<fangyidong@yahoo.com.cn>
+ * @author (originally) FangYidong fangyidong@yahoo.com.cn
  */
 public interface ContainerFactory {
 	/**

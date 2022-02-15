@@ -250,6 +250,7 @@ public abstract class BaseNCodec {
      *
      * @param size minimum spare space required
      * @param context the context to be used
+     * @return bytes
      */
     protected byte[] ensureBufferSize(final int size, final Context context){
         if ((context.buffer == null) || (context.buffer.length < context.pos + size)){
@@ -455,7 +456,7 @@ public abstract class BaseNCodec {
      * @param pArray byte[] array which will later be encoded
      *
      * @return amount of space needed to encoded the supplied array.
-     * Returns a long since a max-len array will require > Integer.MAX_VALUE
+     * Returns a long since a max-len array will require larger than Integer.MAX_VALUE
      */
     public long getEncodedLength(final byte[] pArray) {
         // Calculate non-chunked size - rounded up to allow for padding

@@ -18,7 +18,7 @@ import org.jose4j.json.internal.json_simple.JSONObject;
 /**
  * Parser for JSON text. Please note that JSONParser is NOT thread-safe.
  * 
- * @author (originally) FangYidong<fangyidong@yahoo.com.cn>
+ * @author (originally) FangYidong fangyidong@yahoo.com.cn
  */
 public class JSONParser {
 	public static final int S_INIT=0;
@@ -56,8 +56,6 @@ public class JSONParser {
      * Reset the parser to the initial state with a new character reader.
      * 
      * @param in - The new character reader.
-     * @throws IOException
-     * @throws ParseException
      */
 	public void reset(Reader in){
 		lexer.yyreset(in);
@@ -95,8 +93,8 @@ public class JSONParser {
 	/**
 	 * Parse JSON text into java object from the input source.
 	 * 	
-	 * @param in
-     * @param containerFactory - Use this factory to createyour own JSON object and JSON array containers.
+	 * @param in Reader
+     * @param containerFactory - Use this factory to create your own JSON object and JSON array containers.
 	 * @return Instance of the following:
 	 *  org.jose4j.json.org.json.json_simple.JSONObject,
 	 * 	org.jose4j.json.org.json.json_simple.JSONArray,
@@ -105,8 +103,8 @@ public class JSONParser {
 	 * 	java.lang.Boolean,
 	 * 	null
 	 * 
-	 * @throws IOException
-	 * @throws ParseException
+	 * @throws IOException IOException
+	 * @throws ParseException ParseException
 	 */
 	public Object parse(Reader in, ContainerFactory containerFactory) throws IOException, ParseException{
 		reset(in);
@@ -317,14 +315,14 @@ public class JSONParser {
 	 * 
 	 * @see ContentHandler
 	 * 
-	 * @param in
-	 * @param contentHandler
+	 * @param in Reader
+	 * @param contentHandler ContentHandler
 	 * @param isResume - Indicates if it continues previous parsing operation.
      *                   If set to true, resume parsing the old stream, and parameter 'in' will be ignored. 
 	 *                   If this method is called for the first time in this instance, isResume will be ignored.
 	 * 
-	 * @throws IOException
-	 * @throws ParseException
+	 * @throws IOException IOException
+	 * @throws ParseException ParseException
 	 */
 	public void parse(Reader in, ContentHandler contentHandler, boolean isResume) throws IOException, ParseException{
 		if(!isResume){
