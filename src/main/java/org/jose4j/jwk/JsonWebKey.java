@@ -33,6 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.jose4j.lang.HashUtil.SHA_256;
+
 /**
  */
 public abstract class JsonWebKey implements Serializable
@@ -199,6 +201,14 @@ public abstract class JsonWebKey implements Serializable
         byte[] hashInputBytes = StringUtil.getBytesUtf8(hashInputString);
         return digest.digest(hashInputBytes);
     }
+
+	public String calculateThumbprintUri(String hashAlgorithm) {
+		if (!hashAlgorithm.equals(SHA_256)) {
+			throw new UnsupportedOperationException(
+					"Only SHA-256 algorithm supported at this time for Thumbprint URIs");
+		}
+		return "urn:ietf:params:oauth:jwk-thumbprint:sha-256:" + calculateBase64urlEncodedThumbprint(hashAlgorithm);
+	}
 
     protected abstract String produceThumbprintHashInput();
 
