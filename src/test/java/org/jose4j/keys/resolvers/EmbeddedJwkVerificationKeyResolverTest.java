@@ -110,4 +110,25 @@ public class EmbeddedJwkVerificationKeyResolverTest
 
 
     }
+
+    @Test
+    public void testMakeSureJwkHeaderWithPrivateKeyIsRejected() throws Exception
+    {
+        String jwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6ImRwb3Arand0IiwiandrIjp7Imt0eSI6IkVDIiwieCI6Ijc2blk4UGtTVkE4MG" +
+                "lPUHEzVUVHbm9jdU9HaFFqR09rY1BwYnlXcHNXbWciLCJ5IjoiMDBMWkIySWNPeEVya05ad2NRWF9kbXVkay1hdE9STUtqR" +
+                "EJUc1VlTXZvVSIsImNydiI6IlAtMjU2IiwiZCI6IklJYlhwVWJJSGVtT0FyZWVRX0xNMmFrcTd5NjZEY1lsdXZneWRPcml0" +
+                "SlUifX0.eyJqdGkiOiJiYzc4OSIsImh0bSI6IkdFVCIsImh0dSI6Imh0dHBzOi8vYXBpLmV4YW1wbGUuY29tIiwiaWF0Ijo" +
+                "xNjQ3OTU5MTMyfQ.-GKT4h58oZzS4LGk8b44Dh4GoJ9Y2extHUOr_LzbFIibO_XXfanPZ8ePZkXd8s7cuQyFKagePUVCdu1" +
+                "T2UKbTQ";
+
+        EmbeddedJwkVerificationKeyResolver embeddedJwkResolver = new EmbeddedJwkVerificationKeyResolver();
+        JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                .setVerificationKeyResolver(embeddedJwkResolver)
+                .setEvaluationTime(NumericDate.fromSeconds(1647959133))
+                .setExpectedType(true, "dpop+jwt")
+                .setRequireIssuedAt()
+                .setIssuedAtRestrictions(5, 30)
+                .build();
+        SimpleJwtConsumerTestHelp.expectProcessingFailure(jwt, jwtConsumer);
+    }
 }

@@ -99,7 +99,16 @@ public class Headers
     {
         Object objectHeaderValue = getObjectHeaderValue(name);
         Map<String, Object> jwkParams = (Map<String, Object>) objectHeaderValue;
-        return jwkParams != null ? PublicJsonWebKey.Factory.newPublicJwk(jwkParams, jcaProvider) : null;
+        if (jwkParams != null)
+        {
+            PublicJsonWebKey publicJsonWebKey = PublicJsonWebKey.Factory.newPublicJwk(jwkParams, jcaProvider);
+            if (publicJsonWebKey.getPrivateKey() != null)
+            {
+                throw new JoseException(name + " header contains a private key, which it most definitely should not.");
+            }
+            return publicJsonWebKey;
+        }
+        return null;
     }
 
 

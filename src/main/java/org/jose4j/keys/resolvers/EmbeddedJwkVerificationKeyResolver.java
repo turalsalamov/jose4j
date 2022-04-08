@@ -29,7 +29,7 @@ public class EmbeddedJwkVerificationKeyResolver implements VerificationKeyResolv
         }
         catch (JoseException e)
         {
-            throw new UnresolvableKeyException("Problem processing jwk from JWS header", e);
+            throw new UnresolvableKeyException("Problem processing jwk from JWS header ("+e.getMessage()+")", e);
         }
 
         if (jwk == null)
