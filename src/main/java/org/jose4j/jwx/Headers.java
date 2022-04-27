@@ -88,11 +88,13 @@ public class Headers
         return headerMap.get(name);
     }
 
+    /**
+     *  @deprecated  Use {@link #getPublicJwkHeaderValue} instead.
+     */
+    @Deprecated
     public JsonWebKey getJwkHeaderValue(String name) throws JoseException
     {
-        Object objectHeaderValue = getObjectHeaderValue(name);
-        Map<String, Object> jwkParams = (Map<String, Object>) objectHeaderValue;
-        return jwkParams != null ? JsonWebKey.Factory.newJwk(jwkParams) : null;
+        return getPublicJwkHeaderValue(name,null);
     }
 
     public PublicJsonWebKey getPublicJwkHeaderValue(String name, String jcaProvider) throws JoseException
