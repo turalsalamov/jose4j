@@ -20,11 +20,14 @@ package org.jose4j.jws;
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
+import org.jose4j.keys.BigEndianBigInteger;
 import org.jose4j.keys.EllipticCurves;
+import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -37,8 +40,8 @@ import java.security.spec.EllipticCurve;
  */
 public class EcdsaUsingShaAlgorithm extends BaseSignatureAlgorithm implements JsonWebSignatureAlgorithm
 {
-    private String curveName;
-    private int signatureByteLength;
+    private final String curveName;
+    private final int signatureByteLength;
 
     public EcdsaUsingShaAlgorithm(String id, String javaAlgo, String curveName, int signatureByteLength)
     {
@@ -49,6 +52,25 @@ public class EcdsaUsingShaAlgorithm extends BaseSignatureAlgorithm implements Js
 
     public boolean verifySignature(byte[] signatureBytes, Key key, byte[] securedInputBytes, ProviderContext providerContext) throws JoseException
     {
+        // some pre-validation before calling the JCA to verify the signature
+        // inspired by CVE-2022-21449 https://neilmadden.blog/2022/04/19/psychic-signatures-in-java/
+        if (signatureBytes.length > signatureByteLength)
+        {
+            return false;
+        }
+
+        final byte[] rb = ByteUtil.leftHalf(signatureBytes);
+        final BigInteger r = BigEndianBigInteger.fromBytes(rb);
+        final byte[] sb = ByteUtil.rightHalf(signatureBytes);
+        final BigInteger s = BigEndianBigInteger.fromBytes(sb);
+        ECParameterSpec ecParams = EllipticCurves.getSpec(curveName);
+        final BigInteger orderN = ecParams.getOrder();
+
+        if (r.mod(orderN).equals(BigInteger.ZERO) || s.mod(orderN).equals(BigInteger.ZERO))
+        {
+            return false;
+        }
+
         byte[] derEncodedSignatureBytes;
         try
         {
@@ -96,7 +118,7 @@ public class EcdsaUsingShaAlgorithm extends BaseSignatureAlgorithm implements Js
 
         int i;
 
-        for (i = rawLen; (i > 0) && (concatenatedSignatureBytes[rawLen - i] == 0); i--);
+        for (i = rawLen; (i > 1) && (concatenatedSignatureBytes[rawLen - i] == 0); i--);
 
         int j = i;
 
@@ -107,7 +129,7 @@ public class EcdsaUsingShaAlgorithm extends BaseSignatureAlgorithm implements Js
 
         int k;
 
-        for (k = rawLen; (k > 0) && (concatenatedSignatureBytes[2*rawLen - k] == 0); k--);
+        for (k = rawLen; (k > 1) && (concatenatedSignatureBytes[2*rawLen - k] == 0); k--);
 
         int l = k;
 
