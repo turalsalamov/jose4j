@@ -313,6 +313,7 @@ public class JsonWebKeySetTest
     public void testParseSetContainingInvalid() throws Exception
     {
         String json = "{\"keys\":[" +
+            "{\"kty\":\"EC\",\"crv\":\"NOPERS\",\"kid\":\"iRTU\",\"x\":\"tcjSy7nIVZ2DVz-RKjqHIJqr5WDqZLS6fq4rEN6pfGY\",\"y\":\"2oqx5jvggJKy-LXFjpDOpL0g_SbiLylu_8xx-dBMQeQ\"}, " +
             "{\"kty\":\"EC\",\"x\":\"riwTtQeRjmlDsR4PUQELhejpPkZkQstb0_Lf08qeBzM\",\"y\":\"izN8y6z-8j8bB_Lj10gX9mnaE_E0ZK5fl0hJVyLWMKA\",\"crv\":\"P-256\"}," +
             "{\"kty\":false,\"x\":\"GS2tEeCRf0CFHzI_y68XiLzqa9-RpG4Xn-dq2lPtShY\",\"y\":\"Rq6ybA7IbjhDTfvP2GSzxEql8II7RvRPb3mJ6tzZUgI\",\"crv\":\"P-256\"}," +
             "{\"kty\":\"EC\",\"x\":\"IiIIM4W-HDen_11XiGlFXh1kOxKcX1YB5gqMrCM-hMM\",\"y\":\"57-3xqdddSBBarwwXcWu4hIG4dAlIiEYdy4aaFGb57s\",\"crv\":\"P-256\"}," +
@@ -323,6 +324,8 @@ public class JsonWebKeySetTest
             "{\"kty\":{\"EC\":\"EC\"},\"x\":\"riwTtQeRjmlDsR4PUQELhejpPkZkQstb0_Lf08qeBzM\",\"y\":\"izN8y6z-8j8bB_Lj10gX9mnaE_E0ZK5fl0hJVyLWMKA\",\"crv\":\"P-256\"}," +
             "{\"kty\":null,\"x\":\"riwTtQeRjmlDsR4PUQELhejpPkZkQstb0_Lf08qeBzM\",\"y\":\"izN8y6z-8j8bB_Lj10gX9mnaE_E0ZK5fl0hJVyLWMKA\",\"crv\":\"P-256\"}," +
             "]}";
+
+
 
         JsonWebKeySet jwks = new JsonWebKeySet(json);
         assertEquals(3, jwks.getJsonWebKeys().size());

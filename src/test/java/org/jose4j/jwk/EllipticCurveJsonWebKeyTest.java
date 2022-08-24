@@ -20,6 +20,7 @@ import org.jose4j.base64url.Base64Url;
 import org.jose4j.json.JsonUtil;
 import org.jose4j.keys.EllipticCurves;
 import org.jose4j.keys.ExampleEcKeysFromJws;
+import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
 import org.junit.Test;
 
@@ -159,5 +160,21 @@ public class EllipticCurveJsonWebKeyTest
 
         assertEquals(jwkWithNoZeroLeftPaddingBytes.getPublicKey(), jwkWithZeroLeftPaddingBytes.getPublicKey());
 
+    }
+
+    @Test (expected = InvalidKeyException.class)
+    public void newCurveWhoDis() throws JoseException
+    {
+        // from https://bitbucket.org/b_c/jose4j/issues/198/nullpointerexception-when-the-curve-is-not
+        // throw a bit more meaningful Exception rather than NPE when the curve isn't supported
+            String jwkJson =
+                    "{     \"kty\":\"EC\",\n" +
+                    "     \"use\":\"sig\",\n" +
+                    "     \"crv\":\"secp256k1\",\n" +
+                    "     \"kid\":\"iRTU\",\n" +
+                    "     \"x\":\"tcjSy7nIVZ2DVz-RKjqHIJqr5WDqZLS6fq4rEN6pfGY\",\n" +
+                    "     \"y\":\"2oqx5jvggJKy-LXFjpDOpL0g_SbiLylu_8xx-dBMQeQ\"}";
+
+        JsonWebKey jsonWebKey = JsonWebKey.Factory.newJwk(jwkJson);
     }
 }

@@ -18,6 +18,7 @@ package org.jose4j.jwk;
 
 import org.jose4j.keys.EcKeyUtil;
 import org.jose4j.keys.EllipticCurves;
+import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
 
 import java.math.BigInteger;
@@ -63,6 +64,10 @@ public class EllipticCurveJsonWebKey extends PublicJsonWebKey
 
         curveName = getString(params, CURVE_MEMBER_NAME, true);
         ECParameterSpec curve = EllipticCurves.getSpec(curveName);
+        if (curve == null)
+        {
+            throw new InvalidKeyException("\"" + curveName + "\" is an unknown or unsupported value for the \"crv\" parameter.");
+        }
 
         BigInteger x = getBigIntFromBase64UrlEncodedParam(params, X_MEMBER_NAME, true);
 
