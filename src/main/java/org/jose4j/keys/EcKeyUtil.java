@@ -95,7 +95,7 @@ public class EcKeyUtil extends KeyPairUtil
         }
         catch (InvalidAlgorithmParameterException e)
         {
-            throw new JoseException("Unable to create EC key pair with spec " + spec, e);
+            throw new JoseException("Unable to create EC key pair. " + e.getMessage(), e);
         }
     }
 }

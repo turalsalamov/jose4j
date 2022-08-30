@@ -62,7 +62,7 @@ public abstract class BaseSignatureAlgorithm extends AlgorithmInfo implements Js
         }
         catch (SignatureException e)
         {
-            if (log.isDebugEnabled()) {log.debug("Problem verifying signature: " + e);}
+            if (log.isDebugEnabled()) {log.debug("Problem verifying " + getAlgorithmIdentifier() + " signature: " + ExceptionHelp.toStringWithCauses(e));}
             return false;
         }
     }
@@ -235,7 +235,7 @@ public abstract class BaseSignatureAlgorithm extends AlgorithmInfo implements Js
         }
         catch (Exception e)
         {
-            log.debug(getAlgorithmIdentifier() + " vai " + getJavaAlgorithm() +
+            log.debug(getAlgorithmIdentifier() + " via " + getJavaAlgorithm() +
                     " is NOT available from the underlying JCE (" + ExceptionHelp.toStringWithCauses(e) + ").");
             return false;
 
