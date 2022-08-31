@@ -133,7 +133,7 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
         boolean onCurve = leftSide.equals(rightSide);
         if (!onCurve)
         {
-            throw new JoseException(HeaderParameterNames.EPHEMERAL_PUBLIC_KEY + " is invalid for " + EllipticCurves.getName(curve));
+            throw new InvalidKeyException(HeaderParameterNames.EPHEMERAL_PUBLIC_KEY + " is invalid for " + EllipticCurves.getName(curve));
         }
     }
 
