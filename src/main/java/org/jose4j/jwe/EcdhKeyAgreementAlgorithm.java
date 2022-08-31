@@ -45,6 +45,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.interfaces.ECKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECFieldFp;
@@ -75,11 +76,24 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     public ContentEncryptionKeys manageForEncrypt(Key managementKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, byte[] cekOverride, ProviderContext providerContext) throws JoseException
     {
         KeyValidationSupport.cekNotAllowed(cekOverride, getAlgorithmIdentifier());
-        ECPublicKey receiversKey = (ECPublicKey) managementKey;
+        ECPublicKey receiverKey = (ECPublicKey) managementKey;
         String keyPairGeneratorProvider = providerContext.getGeneralProviderContext().getKeyPairGeneratorProvider();
         SecureRandom secureRandom = providerContext.getSecureRandom();
-        EllipticCurveJsonWebKey ephemeralJwk = EcJwkGenerator.generateJwk(receiversKey.getParams(), keyPairGeneratorProvider, secureRandom);
+        checkCurveAllowed(receiverKey);
+        EllipticCurveJsonWebKey ephemeralJwk = EcJwkGenerator.generateJwk(receiverKey.getParams(), keyPairGeneratorProvider, secureRandom);
         return manageForEncrypt(managementKey, cekDesc, headers, ephemeralJwk, providerContext);
+    }
+
+    private void checkCurveAllowed(ECKey receiverKey) throws InvalidKeyException
+    {
+        ECParameterSpec paramSpec = receiverKey.getParams();
+        String name = EllipticCurves.getName(paramSpec.getCurve());
+        if (EllipticCurves.SECP_256K1.equals(name))
+        {
+            // https://www.rfc-editor.org/rfc/rfc8812.html#name-other-uses-of-the-secp256k1 kinda says not to do it
+            // so explicitly disallow it
+            throw new InvalidKeyException("Use of the " + EllipticCurves.SECP_256K1 + " curve is not defined for ECDH-ES key agreement with JOSE.");
+        }
     }
 
     ContentEncryptionKeys manageForEncrypt(Key managementKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, PublicJsonWebKey ephemeralJwk, ProviderContext providerContext) throws JoseException
@@ -96,6 +110,7 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
         JsonWebKey ephemeralJwk = headers.getPublicJwkHeaderValue(HeaderParameterNames.EPHEMERAL_PUBLIC_KEY, keyFactoryProvider);
         ECPublicKey ephemeralPublicKey = (ECPublicKey) ephemeralJwk.getKey();
         ECPrivateKey privateKey = (ECPrivateKey) managementKey;
+        checkCurveAllowed(privateKey);
         checkPointIsOnCurve(ephemeralPublicKey, privateKey);
         KeyAgreement keyAgreement = createKeyAgreement(privateKey, ephemeralPublicKey, providerContext);
         return new CryptoPrimitive(keyAgreement);

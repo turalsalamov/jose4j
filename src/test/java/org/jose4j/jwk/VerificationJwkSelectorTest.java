@@ -2,6 +2,7 @@ package org.jose4j.jwk;
 
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmConstraints.ConstraintType;
+import org.jose4j.jwa.JceProviderTestSupport;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.keys.EllipticCurves;
@@ -14,7 +15,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 
 /**
  *
@@ -1258,4 +1262,35 @@ public class VerificationJwkSelectorTest
         assertThat(selected.size(), equalTo(1));
         assertThat(selected.get(0).getKey(), equalTo(jsonWebKeys.get(2).getKey()));
     }
+
+    @Test
+    public void checkItllFindSecp256k1() throws Exception
+    {
+        JceProviderTestSupport support = new JceProviderTestSupport();
+        support.setSignatureAlgsNeeded(AlgorithmIdentifiers.ECDSA_USING_SECP256K1_CURVE_AND_SHA256);
+        support.runWithBouncyCastleProviderIfNeeded(new JceProviderTestSupport.RunnableTest()
+        {
+            @Override
+            public void runTest() throws Exception
+            {
+                JsonWebKeySet jwks = new JsonWebKeySet("{\"keys\":[" +
+                        "{\"kty\":\"EC\",\"x\":\"-_Z0BX1s-hINAcEVzWgTn0OgIAan_24g7ZFMkZLHYyY\",\"y\":\"L3t0vMmh28DymQsBYGTR9C_Y3jNASGV3M8_RCZrvnIY\",\"crv\":\"P-256\"}," +
+                        "{\"kty\":\"EC\",\"x\":\"78TF5FZ41_5bpVBdGv59Jd4Ip18zhr5uKCIhKRI8F_6Ha1kGzp4PGhDYOyZmDI7S\",\"y\":\"l2BKr3aZw_R7fet4HBmCg4Xwu-7EcjKhSstAn3OjGSY8y8jYQclgk8LX3p7oUlge\",\"crv\":\"P-384\"}," +
+                        "{\"kty\":\"EC\",\"x\":\"U5X4zZGAOgWIQPfaofYOjQ_Q3Hq13sYL6llaQh8tB78\",\"y\":\"WMsv-6d0eF3ql44gE5n1KCfyUU_QCizWOTR0IWowA00\",\"crv\":\"secp256k1\"}," +
+                        "{\"kty\":\"EC\",\"x\":\"AUgUpR1m-pbOs7KpiCHlS7k9EofjFDEpLI_-KZ6EhVznRswd3EACl2KPu4BrZbnxxPiSu-C-4gHwGOH5z8xWNC8D\",\"y\":\"AbNMeensLTYgUZbcFyK7oNqW_skbF9yQwW5_I6SeBif80p-vUagvXkOATz7_go1dNJobdwA-Wt2FedAMzb7cJqJI\",\"crv\":\"P-521\"}]}\n");
+
+                JsonWebSignature jws = new JsonWebSignature();
+                jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_SECP256K1_CURVE_AND_SHA256);
+
+                VerificationJwkSelector selector = new VerificationJwkSelector();
+                List<JsonWebKey> jsonWebKeys = jwks.getJsonWebKeys();
+                List<JsonWebKey> selected = selector.selectList(jws, jsonWebKeys);
+                assertThat(selected.size(), equalTo(1));
+                assertThat(selected.get(0).getKey(), equalTo(jsonWebKeys.get(2).getKey()));
+            }
+        });
+
+    }
+
+
 }

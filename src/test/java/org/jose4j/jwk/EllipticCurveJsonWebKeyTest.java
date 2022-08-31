@@ -170,7 +170,7 @@ public class EllipticCurveJsonWebKeyTest
             String jwkJson =
                     "{     \"kty\":\"EC\",\n" +
                     "     \"use\":\"sig\",\n" +
-                    "     \"crv\":\"secp256k1\",\n" +
+                    "     \"crv\":\"NOTSUPPORTED\",\n" +
                     "     \"kid\":\"iRTU\",\n" +
                     "     \"x\":\"tcjSy7nIVZ2DVz-RKjqHIJqr5WDqZLS6fq4rEN6pfGY\",\n" +
                     "     \"y\":\"2oqx5jvggJKy-LXFjpDOpL0g_SbiLylu_8xx-dBMQeQ\"}";

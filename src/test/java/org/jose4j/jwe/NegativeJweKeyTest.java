@@ -20,6 +20,7 @@ import junit.framework.TestCase;
 
 import org.jose4j.jwa.AlgorithmFactoryFactory;
 import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.keys.AesKey;
 import org.jose4j.keys.ExampleEcKeysFromJws;
@@ -318,6 +319,8 @@ public class NegativeJweKeyTest extends TestCase
         PrivateKey privateRsaKey = ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey();
         PublicKey publicRsaKey = ExampleRsaJwksFromJwe.APPENDIX_A_1.getPublicKey();
 
+        PublicJsonWebKey secp256k1Jwk = PublicJsonWebKey.Factory.newPublicJwk("{\"kty\":\"EC\",\"x\":\"QltYx4aLKlR_YZhS7BYczgiLk1soPg5Ogd6icW43H2o\",\"y\":\"3qsylG_liGla-ZMM52R74fc9nQIhRrylFTt9srlF44A\",\"crv\":\"secp256k1\",\"d\":\"H5OQ8f1tkO0xBjDBqXEohpIj-rkrdxfkgiK-UZjbu68\"}");
+
         for (String ecAlg : new String[] {ECDH_ES, ECDH_ES_A128KW, ECDH_ES_A192KW, ECDH_ES_A256KW})
         {
             expectBadKeyFailOnProduce(ecAlg, AES_128_CBC_HMAC_SHA_256, publicRsaKey);
@@ -325,6 +328,7 @@ public class NegativeJweKeyTest extends TestCase
             expectBadKeyFailOnProduce(ecAlg, AES_128_CBC_HMAC_SHA_256, aesKey(32));
             expectBadKeyFailOnProduce(ecAlg, AES_128_CBC_HMAC_SHA_256, ExampleEcKeysFromJws.PRIVATE_256);
             expectBadKeyFailOnProduce(ecAlg, AES_128_CBC_HMAC_SHA_256, null);
+            expectBadKeyFailOnProduce(ecAlg, AES_128_CBC_HMAC_SHA_256, secp256k1Jwk.getPublicKey());
         }
 
         String csEcdh = "eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImVwayI6eyJrdHkiOiJFQyIsIngiO" +
@@ -338,7 +342,13 @@ public class NegativeJweKeyTest extends TestCase
                 "_lZgmx258W8L2sHkE8gaxw.fmZowRNnxfgpqImyyB_o4zCQ4Z6LLBtIEQBLZkELOqim5RM6O9t66_ZvAZphevbL." +
                 "DiRDsaE4g7ZcTQVxya19og";
 
-        String[] css = new String[] {csEcdh, csEcdhKw};
+        // https://www.rfc-editor.org/rfc/rfc8812.html#name-other-uses-of-the-secp256k1
+        // kinda sorta says don't do ECDH with secp256k1 so check that this fails
+        // even though it could work because it was created (before restrictions put in place)
+        // with secp256k1Jwk above
+        String ecdhWithSecp256k1 = "eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImVwayI6eyJrdHkiOiJFQyIsIngiOiJvZUZhVHdHbUdJbndOSDRxaks2c0NjWVFrTkduOEdjVjNpNjNkOGc3R0RBIiwieSI6InN0UGVRTzJqNkRFeVlEdkZBaVp1V2tleDVXNmQzdkZUZjE1SXN2eFMwaWciLCJjcnYiOiJzZWNwMjU2azEifX0..vpF1e8Fxj3MH8I_HrENx9A.UbUBwgwws_scSTOEeXdIDQ.uBfl3PTuIr_3nlRLTMQNyg";
+
+        String[] css = new String[] {csEcdh, csEcdhKw, ecdhWithSecp256k1};
 
         for (String cs : css)
         {
@@ -346,6 +356,8 @@ public class NegativeJweKeyTest extends TestCase
             expectBadKeyFailOnConsume(cs, privateRsaKey);
             expectBadKeyFailOnConsume(cs, aesKey(16));
             expectBadKeyFailOnConsume(cs, ExampleEcKeysFromJws.PUBLIC_256);
+            expectBadKeyFailOnConsume(cs, ExampleEcKeysFromJws.PRIVATE_521);
+            expectBadKeyFailOnConsume(cs, secp256k1Jwk.getPrivateKey());
         }
     }
 

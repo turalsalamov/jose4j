@@ -25,8 +25,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Values for these curve parameters taken from FIPS PUB 186-3
+ * Values for these (the NIST P-*) curve parameters taken from FIPS PUB 186-3
  * and http://www.nsa.gov/ia/_files/nist-routines.pdf
+ *
+ * The secp256k1 curve parameters came from inspecting the params on a key pair
+ * generated with ECGenParameterSpec("secp256k1") 
  */
 public class EllipticCurves
 {
@@ -34,6 +37,8 @@ public class EllipticCurves
     public static final String P_256 = "P-256";
     public static final String P_384 = "P-384";
     public static final String P_521 = "P-521";
+
+    public static final String SECP_256K1 = "secp256k1";
 
     private static final Map<String, ECParameterSpec> nameToSpec = new HashMap<String, ECParameterSpec>();
     private static final Map<EllipticCurve, String> curveToName = new HashMap<EllipticCurve, String>();
@@ -55,7 +60,7 @@ public class EllipticCurves
         return curveToName.get(curve);
     }
 
-    // cofactor h (Thus, for these curves over prime fileds, the cofactor is always h = 1)
+    // cofactor h (Thus, for these curves over prime fields, the cofactor is always h = 1)
     private static final int COFACTOR = 1;
 
     public static final ECParameterSpec P256 = new ECParameterSpec(
@@ -109,7 +114,7 @@ public class EllipticCurves
                     "659399113263569398956308152294913554433653942643"),
         COFACTOR);
 
-        public static final ECParameterSpec P521 = new ECParameterSpec(
+    public static final ECParameterSpec P521 = new ECParameterSpec(
         new EllipticCurve(
             // field the finite field that this elliptic curve is over.
             new ECFieldFp(new BigInteger("68647976601306097149819007990813932172694353001433" +
@@ -147,11 +152,32 @@ public class EllipticCurves
                 "7005449"),
         COFACTOR);
 
+    public static final ECParameterSpec SECP256K1 = new ECParameterSpec(
+        new EllipticCurve(
+            // field the finite field that this elliptic curve is over.
+            new ECFieldFp(new BigInteger("115792089237316195423570985008687907853269984665640564039457584007908834671663")),
+            // a the first coefficient of this elliptic curve.
+            new BigInteger("0"),
+            // b the second coefficient of this elliptic curve.
+            new BigInteger("7")
+        ),
+        //g the generator which is also known as the base point.
+        new ECPoint(
+            // gx
+            new BigInteger("55066263022277343669578718895168534326250603453777594175500187360389116729240"),
+            // gy
+            new BigInteger("32670510020758816978083085130507043184471273380659243275938904335757337482424")
+        ),
+        // Order n
+        new BigInteger("115792089237316195423570985008687907852837564279074904382605163141518161494337"),
+        COFACTOR);
+
     static
     {
         addCurve(P_256, EllipticCurves.P256);
         addCurve(P_384, EllipticCurves.P384);
         addCurve(P_521, EllipticCurves.P521);
+        addCurve(SECP_256K1, SECP256K1);
     }
 
 }

@@ -17,12 +17,26 @@
 package org.jose4j.jws;
 
 import junit.framework.TestCase;
+import org.jose4j.jwa.JceProviderTestSupport;
+import org.jose4j.jwk.EcJwkGenerator;
+import org.jose4j.jwk.EllipticCurveJsonWebKey;
+import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.PublicJsonWebKey;
+import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.keys.*;
 import org.jose4j.lang.JoseException;
 
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECFieldFp;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.EllipticCurve;
 
 /**
  */
@@ -40,6 +54,52 @@ public class EcdsaUsingShaTest extends TestCase
         PrivateKey priv2 = keyPair2.getPrivate();
         PublicKey pub2 = keyPair2.getPublic();
         JwsTestSupport.testBasicRoundTrip("PAYLOAD!!!", algo, priv1, pub1, priv2, pub2);
+    }
+
+    public void testES256KRoundTripGenKeys() throws Exception
+    {
+        JceProviderTestSupport support = new JceProviderTestSupport();
+        support.setSignatureAlgsNeeded(AlgorithmIdentifiers.ECDSA_USING_SECP256K1_CURVE_AND_SHA256);
+        support.runWithBouncyCastleProviderIfNeeded(new JceProviderTestSupport.RunnableTest()
+        {
+            @Override
+            public void runTest() throws Exception
+            {
+                EllipticCurveJsonWebKey keyPair1jwk = EcJwkGenerator.generateJwk(EllipticCurves.SECP256K1);
+                KeyPair keyPair2 = keyUtil.generateKeyPair(EllipticCurves.SECP256K1);
+                String algo = AlgorithmIdentifiers.ECDSA_USING_SECP256K1_CURVE_AND_SHA256;
+                PrivateKey priv1 = keyPair1jwk.getPrivateKey();
+                PublicKey pub1 = keyPair1jwk.getPublicKey();
+                PrivateKey priv2 = keyPair2.getPrivate();
+                PublicKey pub2 = keyPair2.getPublic();
+                JwsTestSupport.testBasicRoundTrip("k", algo, priv1, pub1, priv2, pub2);
+            }
+        });
+    }
+
+    public void testExternalES256K() throws Exception
+    {
+        JceProviderTestSupport support = new JceProviderTestSupport();
+        support.setSignatureAlgsNeeded(AlgorithmIdentifiers.ECDSA_USING_SECP256K1_CURVE_AND_SHA256);
+        support.runWithBouncyCastleProviderIfNeeded(new JceProviderTestSupport.RunnableTest()
+        {
+            @Override
+            public void runTest() throws Exception
+            {
+                String jwsCs = "eyJraWQiOiJtZWgiLCJhbGciOiJFUzI1NksifQ.eyJzdWIiOiJtZWgifQ." +
+                        "-5KBGAoCZYkE-1cpU8gQZ1SfLCAxd5P0TtDAEuCAhPl57eTMTFqNLXiM09J4lgq0IA35OxNgxIxn3WNFUAXEZg";
+                String jwkJson = "{\"kty\":\"EC\",\"use\":\"sig\",\"crv\":\"secp256k1\",\"kid\":\"meh\"," +
+                        "\"x\":\"cWwaOcRUqZE6UMUtOPLcNIIouiM7GrdO_gWV47e837I\"," +
+                        "\"y\":\"N2vLlH7f_2Y54zKfbUSSQyQxb5oozybb2SsM-eRYpMU\"}";
+                JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJson);
+                JsonWebSignature jws = new JsonWebSignature();
+                jws.setCompactSerialization(jwsCs);
+                jws.setKey(jwk.getKey());
+                assertTrue(jws.verifySignature());
+                String payload = jws.getPayload();
+                assertEquals("{\"sub\":\"meh\"}", payload);
+            }
+        });
     }
 
     public void testP384RoundTripGenKeys() throws JoseException
