@@ -690,7 +690,7 @@ public class JwtConsumerBuilder
 
     /**
      * Facilities explicit JWT typing by setting the expected media type value of the "typ" header of the
-     * innermost JWT including prepending "application/" to to any "typ" value not containing a
+     * innermost JWT including prepending "application/" to any "typ" value not containing a
      * '/' as defined in <a href="https://tools.ietf.org/html/rfc7515#section-4.1.9">Section 4.1.9 of RFC 7515</a>.
      *
      * @param requireType true if the type header is required, false otherwise
