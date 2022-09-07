@@ -149,6 +149,22 @@ public class ByteUtil
         return byteLength * 8;
     }
 
+    public static byte[] reverse(byte[] in)
+    {
+        if (in == null)
+        {
+            return null;
+        }
+
+        byte[] reversed = new byte[in.length];
+        for (int i = 0; i < in.length; i++)
+        {
+            reversed[reversed.length - 1 - i] = in[i];
+        }
+
+        return reversed;
+    }
+
     public static int byteLength(int numberOfBits)
     {
         return numberOfBits / 8;
