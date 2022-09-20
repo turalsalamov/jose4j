@@ -253,6 +253,8 @@ public abstract class JsonWebKey implements Serializable
                     return new RsaJsonWebKey(params);
                 case EllipticCurveJsonWebKey.KEY_TYPE:
                     return new EllipticCurveJsonWebKey(params);
+                case OctetKeyPairJsonWebKey.KEY_TYPE:
+                    return new OctetKeyPairJsonWebKey(params);
                 case OctetSequenceJsonWebKey.KEY_TYPE:
                     return new OctetSequenceJsonWebKey(params);
                 default:
@@ -272,7 +274,12 @@ public abstract class JsonWebKey implements Serializable
             }
             else if (PublicKey.class.isInstance(key))
             {
-                throw new JoseException("Unsupported or unknown public key " + key);
+                if (OctetKeyPairJsonWebKey.isApplicable(key))
+                {
+                    return new OctetKeyPairJsonWebKey((PublicKey)key);
+                }
+
+                throw new JoseException("Unsupported or unknown public key (alg=" + key.getAlgorithm() +") " + key);
             }
             else
             {

@@ -270,6 +270,8 @@ public abstract class PublicJsonWebKey extends JsonWebKey
                     return new RsaJsonWebKey(params, jcaProvider);
                 case EllipticCurveJsonWebKey.KEY_TYPE:
                     return new EllipticCurveJsonWebKey(params, jcaProvider);
+                case OctetKeyPairJsonWebKey.KEY_TYPE:
+                    return new OctetKeyPairJsonWebKey(params, jcaProvider);
                 default:
                     throw new JoseException("Unknown key type (for public keys): '" + kty + "'");
             }
