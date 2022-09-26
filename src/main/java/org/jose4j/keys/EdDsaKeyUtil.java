@@ -132,8 +132,15 @@ public class EdDsaKeyUtil extends KeyPairUtil
         }
     }
 
-    private NamedParameterSpec getNamedParameterSpec(String name)
+    private NamedParameterSpec getNamedParameterSpec(String name) throws JoseException
     {
-        return new NamedParameterSpec(name);
+        try
+        {
+            return new NamedParameterSpec(name);
+        }
+        catch (NoClassDefFoundError ncdfe)
+        {
+            throw new JoseException("Cannot get a NamedParameterSpec with " + name, ncdfe);
+        }
     }
 }
