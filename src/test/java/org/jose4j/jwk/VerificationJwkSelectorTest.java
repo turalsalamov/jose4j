@@ -2,6 +2,7 @@ package org.jose4j.jwk;
 
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmConstraints.ConstraintType;
+import org.jose4j.jwa.AlgorithmFactoryFactory;
 import org.jose4j.jwa.JceProviderTestSupport;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
@@ -993,6 +994,7 @@ public class VerificationJwkSelectorTest
                 "      \"y\": \"ZlAzvRY_PP0lTJ3nkxIP6HUW9KgzzxE4WWicXQuvf6w\"," +
                 "      \"crv\": \"P-256\"" +
                 "    }," +
+                "    {\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"EmqN44zWvm_L4PRJqrapUgY8EbDj-A5mhW1BBoad71c\"}," +
                 "    {" +
                 "      \"kty\": \"RSA\"," +
                 "      \"use\": \"sig\"," +
@@ -1026,6 +1028,15 @@ public class VerificationJwkSelectorTest
         jsonWebKeys = jwks.getJsonWebKeys();
         selected = verificationJwkSelector.selectList(jws, jsonWebKeys);
         assertThat(1, equalTo(selected.size()));
+
+        if (AlgorithmFactoryFactory.getInstance().getJwsAlgorithmFactory().isAvailable(AlgorithmIdentifiers.EDDSA))
+        {
+            jws = new JsonWebSignature();
+            jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.EDDSA);
+            jsonWebKeys = jwks.getJsonWebKeys();
+            selected = verificationJwkSelector.selectList(jws, jsonWebKeys);
+            assertThat(1, equalTo(selected.size()));
+        }
     }
 
 

@@ -23,13 +23,16 @@ public class OctetKeyPairJsonWebKey extends PublicJsonWebKey
     public static final String PUBLIC_KEY_MEMBER_NAME = "x";
     public static final String PRIVATE_KEY_MEMBER_NAME = "d";
 
-    private final String subType;
+    public static final String SUBTYPE_ED25519 = EdDsaKeyUtil.ED25519;
+    public static final String SUBTYPE_ED448 = EdDsaKeyUtil.ED448;
+
+    private final String subtype;
 
     public OctetKeyPairJsonWebKey(PublicKey publicKey)
     {
         super(publicKey);
         EdECKey edECKey = (EdECKey) publicKey;
-        subType = edECKey.getParams().getName();
+        subtype = edECKey.getParams().getName();
     }
 
     public OctetKeyPairJsonWebKey(Map<String, Object> params) throws JoseException
@@ -41,20 +44,20 @@ public class OctetKeyPairJsonWebKey extends PublicJsonWebKey
     {
         super(params, jcaProvider);
 
-        subType = getString(params, SUBTYPE_MEMBER_NAME, true);
+        subtype = getString(params, SUBTYPE_MEMBER_NAME, true);
 
         EdDsaKeyUtil edDsaKeyUtil = new EdDsaKeyUtil(jcaProvider, null);
 
         String encodedX = getString(params, PUBLIC_KEY_MEMBER_NAME, true);
         byte[] x = Base64Url.decode(encodedX);
-        key = edDsaKeyUtil.publicKey(x, subType);
+        key = edDsaKeyUtil.publicKey(x, subtype);
         checkForBareKeyCertMismatch();
 
         if (params.containsKey(PRIVATE_KEY_MEMBER_NAME))
         {
             String encodedD = getString(params, PRIVATE_KEY_MEMBER_NAME, false);
             byte[] d = Base64Url.decode(encodedD);
-            privateKey = edDsaKeyUtil.privateKey(d, subType);
+            privateKey = edDsaKeyUtil.privateKey(d, subtype);
         }
 
         removeFromOtherParams(SUBTYPE_MEMBER_NAME, PUBLIC_KEY_MEMBER_NAME, PRIVATE_KEY_MEMBER_NAME);
@@ -71,9 +74,9 @@ public class OctetKeyPairJsonWebKey extends PublicJsonWebKey
         return KEY_TYPE;
     }
 
-    public String getSubType()
+    public String getSubtype()
     {
-        return subType;
+        return subtype;
     }
 
     @Override
@@ -92,8 +95,8 @@ public class OctetKeyPairJsonWebKey extends PublicJsonWebKey
     {
         EdDsaKeyUtil edDsaKeyUtil = new EdDsaKeyUtil();
         byte[] publicKeyBytes = edDsaKeyUtil.rawPublicKey(this.key);
+        params.put(SUBTYPE_MEMBER_NAME, subtype);
         params.put(PUBLIC_KEY_MEMBER_NAME, Base64Url.encode(publicKeyBytes));
-        params.put(SUBTYPE_MEMBER_NAME, subType);
     }
 
     @Override
