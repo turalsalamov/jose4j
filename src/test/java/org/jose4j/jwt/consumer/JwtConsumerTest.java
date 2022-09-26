@@ -72,7 +72,11 @@ import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_256_GCM;
 import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.A128GCMKW;
 import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.A192GCMKW;
 import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.A256GCMKW;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+
 
 /**
  *
@@ -97,8 +101,8 @@ public class JwtConsumerTest
                 .build();
 
         JwtContext jwtContext = firstPassConsumer.process(jwt);
-        Assert.assertThat("joe", equalTo(jwtContext.getJwtClaims().getIssuer()));
-        Assert.assertThat(NumericDate.fromSeconds(1300819380), equalTo(jwtContext.getJwtClaims().getExpirationTime()));
+        assertThat("joe", equalTo(jwtContext.getJwtClaims().getIssuer()));
+        assertThat(NumericDate.fromSeconds(1300819380), equalTo(jwtContext.getJwtClaims().getExpirationTime()));
         Assert.assertTrue(jwtContext.getJwtClaims().getClaimValue("http://example.com/is_root", Boolean.class));
 
         // works w/ 'NO_CONSTRAINTS' and setDisableRequireSignature() and null key
@@ -111,8 +115,8 @@ public class JwtConsumerTest
                 .setDisableRequireSignature()
                 .build();
         JwtClaims jcs = consumer.processToClaims(jwt);
-        Assert.assertThat("joe", equalTo(jcs.getIssuer()));
-        Assert.assertThat(NumericDate.fromSeconds(1300819380), equalTo(jcs.getExpirationTime()));
+        assertThat("joe", equalTo(jcs.getIssuer()));
+        assertThat(NumericDate.fromSeconds(1300819380), equalTo(jcs.getExpirationTime()));
         Assert.assertTrue(jcs.getClaimValue("http://example.com/is_root", Boolean.class));
 
         consumer.processContext(jwtContext);
@@ -219,7 +223,7 @@ public class JwtConsumerTest
     public void jwtA2ExampleNestedJWT() throws InvalidJwtException, MalformedClaimException
     {
        // an Example Nested JWT from https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32#appendix-A.2
-       String jwt = 
+       String jwt =
                "eyJhbGciOiJSU0ExXzUiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2IiwiY3R5IjoiSldU" +
                "In0." +
                "g_hEwksO1Ax8Qn7HoN-BVeBoa8FXe0kpyk_XdcSmxvcM5_P296JXXtoHISr_DD_M" +
@@ -269,15 +273,15 @@ public class JwtConsumerTest
 
         for (JwtContext ctx : new JwtContext[] {jwtContext, jwtInfo})
         {
-            Assert.assertThat(2, equalTo(ctx.getJoseObjects().size()));
+            assertThat(2, equalTo(ctx.getJoseObjects().size()));
             Assert.assertTrue(ctx.getJoseObjects().get(0) instanceof JsonWebSignature);
             Assert.assertTrue(ctx.getJoseObjects().get(1) instanceof JsonWebEncryption);
             assertThat(ctx.getJwt(), equalTo(jwt));
 
             JwtClaims jcs = ctx.getJwtClaims();
 
-            Assert.assertThat("joe", equalTo(jcs.getIssuer()));
-            Assert.assertThat(NumericDate.fromSeconds(1300819380), equalTo(jcs.getExpirationTime()));
+            assertThat("joe", equalTo(jcs.getIssuer()));
+            assertThat(NumericDate.fromSeconds(1300819380), equalTo(jcs.getExpirationTime()));
             Assert.assertTrue(jcs.getClaimValue("http://example.com/is_root", Boolean.class));
         }
 
@@ -420,7 +424,7 @@ public class JwtConsumerTest
                 .build();
 
         JwtContext jwtContext = firstPassConsumer.process(jwt);
-        Assert.assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
 
         JsonWebKey macKey = JsonWebKey.Factory.newJwk("{\"kty\":\"oct\",\"k\":\"j-QRollN4PYjebWYcTl32YOGWfdpXi_YYHu03Ifp8K4\"}");
 
@@ -433,7 +437,7 @@ public class JwtConsumerTest
                 .setRequireExpirationTime()
                 .build();
         JwtClaims jwtClaims = consumer.processToClaims(jwt);
-        Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
         consumer.processContext(jwtContext);
 
         consumer = new JwtConsumerBuilder()
@@ -448,7 +452,7 @@ public class JwtConsumerTest
                 .setJweContentEncryptionAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256))
                 .build();
         jwtClaims = consumer.processToClaims(jwt);
-        Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
         consumer.processContext(jwtContext);
 
         consumer = new JwtConsumerBuilder()
@@ -463,7 +467,7 @@ public class JwtConsumerTest
                 .setJweContentEncryptionAlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256)
                 .build();
         jwtClaims = consumer.processToClaims(jwt);
-        Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
         consumer.processContext(jwtContext);
 
 
@@ -567,7 +571,7 @@ public class JwtConsumerTest
                 .build();
 
         JwtContext process = consumer.process(jwt);
-        Assert.assertThat(1, equalTo(process.getJoseObjects().size()));
+        assertThat(1, equalTo(process.getJoseObjects().size()));
         consumer.processContext(jwtContext);
 
         consumer = new JwtConsumerBuilder()
@@ -624,7 +628,7 @@ public class JwtConsumerTest
         final int errorCode = -76717;
 
         JwtContext process = consumer.process(jwt);
-        Assert.assertThat(1, equalTo(process.getJoseObjects().size()));
+        assertThat(1, equalTo(process.getJoseObjects().size()));
         consumer.processContext(jwtContext);
 
         consumer = new JwtConsumerBuilder()
@@ -766,7 +770,7 @@ public class JwtConsumerTest
                 .build();
 
         JwtContext process = consumer.process(jwt);
-        Assert.assertThat("SUB", equalTo(process.getJwtClaims().getSubject()));
+        assertThat("SUB", equalTo(process.getJwtClaims().getSubject()));
 
         String[] parts = CompactSerializer.deserialize(jwt);
         parts[2] = "NGns23fwIfHwxj0tDsFcFuzrlZYopHMWm5gaUzZyNdAwfLU3n_idriThNBjcA2Y68-3cw6IJs9sGmPlNVmXOtEG5n5DrjjmMLCpoeBvLmKW_sCPM35Dx62ZCoi4_" +
@@ -826,7 +830,7 @@ public class JwtConsumerTest
                 .build();
 
         JwtContext process = consumer.process(jwt);
-        Assert.assertThat(1, equalTo(process.getJoseObjects().size()));
+        assertThat(1, equalTo(process.getJoseObjects().size()));
         consumer.processContext(jwtContext);
 
         consumer = new JwtConsumerBuilder()
@@ -883,7 +887,7 @@ public class JwtConsumerTest
                 .build();
 
         JwtContext process = consumer.process(jwt);
-        Assert.assertThat(1, equalTo(process.getJoseObjects().size()));
+        assertThat(1, equalTo(process.getJoseObjects().size()));
         consumer.processContext(jwtContext);
 
         consumer = new JwtConsumerBuilder()
@@ -1011,7 +1015,7 @@ public class JwtConsumerTest
         for (JwtContext context : new JwtContext[] {ctx, jwtContext})
         {
             JwtClaims jwtClaims = context.getJwtClaims();
-            Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+            assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
             List<JsonWebStructure> joseObjects = context.getJoseObjects();
             assertThat(2, equalTo(joseObjects.size()));
             assertTrue(joseObjects.get(0) instanceof JsonWebSignature);
@@ -1060,7 +1064,7 @@ public class JwtConsumerTest
         for (JwtContext context : new JwtContext[] {ctx, jwtContext})
         {
             JwtClaims jwtClaims = context.getJwtClaims();
-            Assert.assertThat("alice", equalTo(jwtClaims.getSubject()));
+            assertThat("alice", equalTo(jwtClaims.getSubject()));
             List<JsonWebStructure> joseObjects = context.getJoseObjects();
             assertThat(2, equalTo(joseObjects.size()));
             assertTrue(joseObjects.get(0) instanceof JsonWebSignature);
@@ -1086,7 +1090,7 @@ public class JwtConsumerTest
                 .setEnableLiberalContentTypeHandling()
                 .build();
         JwtContext jwtContext = firstPassConsumer.process(jwt);
-        Assert.assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
         JwtConsumer consumer = new JwtConsumerBuilder()
                 .setDecryptionKey(encKey.getPrivateKey())
                 .setVerificationKey(sigKey.getPublicKey())
@@ -1097,7 +1101,7 @@ public class JwtConsumerTest
                 .build();
         JwtContext context = consumer.process(jwt);
         JwtClaims jwtClaims = context.getJwtClaims();
-        Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
         consumer.processContext(jwtContext);
 
         jwt = "eyJ6aXAiOiJERUYiLCJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImN0eSI6ImFwcGxpY2F0aW9uL0pXVCIsImVwayI6eyJrdHkiOiJFQyIsIngiOiJxelBlRUl0ZXJmQ0dhTFBpbDU3UmRudERHQVdwdVlBRGtVLUJubkkyTXowIiwieSI6ImNmWUxlc1dneGlfVndCdzdvSzNPT3dabGNrbVRCVmMzcEdnMTNRZ3V5WjQiLCJjcnYiOiJQLTI1NiJ9fQ..ftNMf4CqUSCq8p3L1Y7K1A.Z9K1YIJmSY9du5LUuSs0szCj1PUzq0ZnsEppT8yVPdGVDkDi0elEcsM8dCq8CvYrXG8OFuyp0s8dd2u_fIw4RjMc-aVMBT4ikWDmqb4CA17nC2Hxm6dZFPy3Xx3GnqjiGUIB2JiMOxj6mBZtTSvkKAUvs3Rh4G-87v2hJFpqdLSySqd-rQXL7Dhqxl0Cbu9nZFcYEIk58lpC0H2TN9aP5GtuQYa3BlNuEoEDzIcLhc4.N6VFQ0_UgNqyBsPLyE6MQQ";
@@ -1109,7 +1113,7 @@ public class JwtConsumerTest
                 .setEnableLiberalContentTypeHandling()
                 .build();
         jwtContext = firstPassConsumer.process(jwt);
-        Assert.assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
         consumer = new JwtConsumerBuilder()
                 .setDecryptionKey(encKey.getPrivateKey())
                 .setVerificationKey(sigKey.getPublicKey())
@@ -1120,7 +1124,7 @@ public class JwtConsumerTest
                 .build();
         context = consumer.process(jwt);
         jwtClaims = context.getJwtClaims();
-        Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
         consumer.processContext(jwtContext);
 
 
@@ -1133,7 +1137,7 @@ public class JwtConsumerTest
                 .setEnableLiberalContentTypeHandling()
                 .build();
         jwtContext = firstPassConsumer.process(jwt);
-        Assert.assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
         consumer = new JwtConsumerBuilder()
                 .setDecryptionKey(encKey.getPrivateKey())
                 .setVerificationKey(sigKey.getPublicKey())
@@ -1144,7 +1148,7 @@ public class JwtConsumerTest
                 .build();
         context = consumer.process(jwt);
         jwtClaims = context.getJwtClaims();
-        Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
         consumer.processContext(jwtContext);
 
         jwt = "eyJ6aXAiOiJERUYiLCJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImN0eSI6ImpXdCIsImVwayI6eyJrdHkiOiJFQyIsIngiOiJmYTlJVEh6cEROSG1uV2NDSDVvWGtFYjJ1SncwTXNOU2stQjdFb091WUEwIiwieSI6IkZ1U0RaVXdmb1EtQXB6dEFQRUc1dk40QmZRR2sxWnRMT0FzM1o0a19obmciLCJjcnYiOiJQLTI1NiJ9fQ..FmuORwLWIoNBbRh0XcBzJQ.pSr58DMuRstF3A6xj24yM4KvNgWxtb_QDKuldesTCD-R00BNFwIVx4F51VL5DwR54ITgBZBKdAT4pN6eM-td5VrWBCnSWxFjNrBoDnnRkDfFgq8OjOBaR7k_4zUk41bBikDZ0JOQDWuiaODYBk7PWq0mgotvLPbJ9oc7zfp6lbHqaYXjbzfuD56W_kDYO8zSjiZUGLcYgJDYnO3F8K-QhP02v-0OEpAGrm5SKKV3Txk.Ecojfru8KbkqIw4QvYS3qA";
@@ -1166,7 +1170,7 @@ public class JwtConsumerTest
                 .build();
         context = consumer.process(jwt);
         jwtClaims = context.getJwtClaims();
-        Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
         consumer.processContext(jwtContext);
     }
 
@@ -1219,13 +1223,13 @@ public class JwtConsumerTest
                 .build();
 
         JwtContext jwtContext = jwtConsumer.process(jwt);
-        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+        assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
         List<JsonWebStructure> joseObjects = jwtContext.getJoseObjects();
         JsonWebStructure outerJsonWebObject = joseObjects.get(joseObjects.size() - 1);
         Assert.assertTrue(outerJsonWebObject instanceof JsonWebEncryption);
-        Assert.assertThat("JWT", equalTo(outerJsonWebObject.getContentTypeHeaderValue()));
-        Assert.assertThat("JWT", equalTo(outerJsonWebObject.getHeader(HeaderParameterNames.CONTENT_TYPE)));
-        Assert.assertThat("JWT", equalTo(outerJsonWebObject.getHeaders().getStringHeaderValue(HeaderParameterNames.CONTENT_TYPE)));
+        assertThat("JWT", equalTo(outerJsonWebObject.getContentTypeHeaderValue()));
+        assertThat("JWT", equalTo(outerJsonWebObject.getHeader(HeaderParameterNames.CONTENT_TYPE)));
+        assertThat("JWT", equalTo(outerJsonWebObject.getHeaders().getStringHeaderValue(HeaderParameterNames.CONTENT_TYPE)));
         JsonWebStructure innerJsonWebObject = joseObjects.get(0);
         Assert.assertTrue(innerJsonWebObject instanceof JsonWebSignature);
     }
@@ -1261,7 +1265,7 @@ public class JwtConsumerTest
         for (JwtContext context : new JwtContext[] {ctx, jwtContext})
         {
             JwtClaims jwtClaims = context.getJwtClaims();
-            Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+            assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
             List<JsonWebStructure> joseObjects = context.getJoseObjects();
             assertThat(2, equalTo(joseObjects.size()));
             assertTrue(joseObjects.get(0) instanceof JsonWebEncryption);
@@ -1311,7 +1315,7 @@ public class JwtConsumerTest
         for (JwtContext context : new JwtContext[] {ctx, jwtContext})
         {
             JwtClaims jwtClaims = context.getJwtClaims();
-            Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+            assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
             List<JsonWebStructure> joseObjects = context.getJoseObjects();
             assertThat(3, equalTo(joseObjects.size()));
             assertTrue(joseObjects.get(2) instanceof JsonWebEncryption);
@@ -1357,7 +1361,7 @@ public class JwtConsumerTest
                 .build();
 
         JwtContext jwtContext = jwtConsumer.process(jwt);
-        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+        assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
 
         jwtConsumer = new JwtConsumerBuilder()
                 .setExpectedIssuer("issuer")
@@ -1398,7 +1402,7 @@ public class JwtConsumerTest
                 .build();
 
         jwtContext = jwtConsumer.process(jwt);
-        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+        assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
 
         jwtConsumer = new JwtConsumerBuilder()
                 .setExpectedIssuer("issuer")
@@ -1438,7 +1442,7 @@ public class JwtConsumerTest
                 .build();
 
         jwtContext = jwtConsumer.process(jwt);
-        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+        assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
 
         jwtConsumer = new JwtConsumerBuilder()
                 .setExpectedIssuer("issuer")
@@ -1451,7 +1455,7 @@ public class JwtConsumerTest
                 .build();
 
         jwtContext = jwtConsumer.process(jwt);
-        Assert.assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
+        assertThat("subject", equalTo(jwtContext.getJwtClaims().getSubject()));
 
         jwtConsumer = new JwtConsumerBuilder()
                 .setExpectedIssuer("issuer")
@@ -1564,7 +1568,7 @@ public class JwtConsumerTest
                 .setSkipSignatureVerification()
                 .build();
         JwtContext jwtContext = firstPassConsumer.process(jwt);
-        Assert.assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtContext.getJwtClaims().getStringClaimValue("message")));
 
         JwtConsumer consumer = new JwtConsumerBuilder()
                 .setDecryptionKey(encKey.getPrivateKey())
@@ -1587,7 +1591,7 @@ public class JwtConsumerTest
                 .build();
         JwtContext context = consumer.process(jwt);
         JwtClaims jwtClaims = context.getJwtClaims();
-        Assert.assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
+        assertThat("eh", equalTo(jwtClaims.getStringClaimValue("message")));
         consumer.processContext(jwtContext);
 
 
@@ -1620,7 +1624,7 @@ public class JwtConsumerTest
                 .build();
 
         JwtClaims jwtClaims = consumer.processToClaims(jwt);
-        Assert.assertThat("value", equalTo(jwtClaims.getStringClaimValue("name")));
+        assertThat("value", equalTo(jwtClaims.getStringClaimValue("name")));
 
         // change some things and make sure it fails
         jwt = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..zWNzKpA-QA0BboVl02nz-A.eyJpc3MiOiJtZSIsImF1ZCI6Im1lIiwiZXhwIjoxNDIwMjMxNjA2LCJuYW1lIjoidmFsdWUifQ.QsGX3JhHP1Pwy4zQ8Ha9FQ";
@@ -2443,7 +2447,7 @@ public class JwtConsumerTest
 
         RsaJsonWebKey jwkRSA_b = RsaJwkGenerator.generateJwk(2048);
         jwkRSA_b.setKeyId("r2-b");
-        
+
         OctetSequenceJsonWebKey jwkOct128 = OctJwkGenerator.generateJwk(128);
         jwkOct128.setKeyId("128bits");
         OctetSequenceJsonWebKey jwkOct256 = OctJwkGenerator.generateJwk(256);
@@ -2500,7 +2504,7 @@ public class JwtConsumerTest
         JwtContext jwtCtx = jwtConsumer.process(jwe);
         assertThat(jwtCtx.getJwtClaims().getClaimsMap().size(), equalTo(4));
 
-        // signed only is okay too 
+        // signed only is okay too
         jwtCtx = jwtConsumer.process(jws);
         assertThat(jwtCtx.getJwtClaims().getClaimsMap().size(), equalTo(4));
 
@@ -2658,7 +2662,7 @@ public class JwtConsumerTest
         invalidJwtException = SimpleJwtConsumerTestHelp.expectProcessingFailure(jwe, jwtConsumer);
         assertTrue(invalidJwtException.hasErrorCode(ErrorCodes.INTEGRITY_MISSING));
 
-        // signed with public key as hmac key attack must not work 
+        // signed with public key as hmac key attack must not work
         jsonWebSignature = new JsonWebSignature();
         jsonWebSignature.setPayload(claimsJson);
         jsonWebSignature.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
@@ -2667,7 +2671,7 @@ public class JwtConsumerTest
         jws = jsonWebSignature.getCompactSerialization();
         invalidJwtException = SimpleJwtConsumerTestHelp.expectProcessingFailure(jws, jwtConsumer);
         assertTrue(invalidJwtException.hasErrorCode(ErrorCodes.MISCELLANEOUS));
-        
+
 
         // asymmetric encryption only is NOT okay
         jsonWebEncryption = new JsonWebEncryption();
@@ -2697,7 +2701,7 @@ public class JwtConsumerTest
 
         jwtConsumer = new JwtConsumerBuilder().setExpectedAudience("example.com").build();
         SimpleJwtConsumerTestHelp.goodValidate(jwtClaims, jwtConsumer);
-        
+
 
         jwtConsumer = new JwtConsumerBuilder().setExpectedAudience("example.org", "example.com", "k8HiI26Y7").build();
         SimpleJwtConsumerTestHelp.goodValidate(jwtClaims, jwtConsumer);
@@ -3043,7 +3047,7 @@ public class JwtConsumerTest
         jwtConsumerBuilder.setDisableRequireSignature();
         JwtConsumer jwtConsumer = jwtConsumerBuilder.build();
         JwtClaims processedClaims = jwtConsumer.processToClaims(jwt);
-        Assert.assertThat(processedClaims.getSubject(), equalTo("subject"));
+        assertThat(processedClaims.getSubject(), equalTo("subject"));
     }
 
     @Test
