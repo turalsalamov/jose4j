@@ -4,10 +4,7 @@ import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.JoseException;
 
 import java.math.BigInteger;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.Key;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -21,7 +18,7 @@ import java.security.spec.NamedParameterSpec;
 import java.util.Arrays;
 import java.util.Optional;
 
-public class EdDsaKeyUtil extends KeyPairUtil
+public class EdDsaKeyUtil extends OctetKeyPairUtil
 {
     public static final String ED25519 = "Ed25519";
     public static final String ED448 = "Ed448";
@@ -70,6 +67,7 @@ public class EdDsaKeyUtil extends KeyPairUtil
         return optionalBytes.orElse(ByteUtil.EMPTY_BYTES);
     }
 
+    @Override
     public EdECPublicKey publicKey(byte[] publicKeyBytes, String name) throws JoseException
     {
         publicKeyBytes = publicKeyBytes.clone();
@@ -94,6 +92,7 @@ public class EdDsaKeyUtil extends KeyPairUtil
         }
     }
 
+    @Override
     public EdECPrivateKey privateKey(byte[] privateKeyBytes, String name) throws JoseException
     {
         NamedParameterSpec paramSpec = getNamedParameterSpec(name);
@@ -106,41 +105,6 @@ public class EdDsaKeyUtil extends KeyPairUtil
         catch (InvalidKeySpecException e)
         {
             throw new JoseException("Invalid key spec: " + e, e);
-        }
-    }
-
-    public KeyPair generateKeyPair(String name) throws JoseException
-    {
-        KeyPairGenerator keyGenerator = getKeyPairGenerator();
-        NamedParameterSpec spec = getNamedParameterSpec(name);
-
-        try
-        {
-            if (secureRandom == null)
-            {
-                keyGenerator.initialize(spec);
-            }
-            else
-            {
-                keyGenerator.initialize(spec, secureRandom);
-            }
-            return keyGenerator.generateKeyPair();
-        }
-        catch (InvalidAlgorithmParameterException e)
-        {
-            throw new JoseException("Unable to create EdDSA key pair: " + e, e);
-        }
-    }
-
-    private NamedParameterSpec getNamedParameterSpec(String name) throws JoseException
-    {
-        try
-        {
-            return new NamedParameterSpec(name);
-        }
-        catch (NoClassDefFoundError ncdfe)
-        {
-            throw new JoseException("Cannot get a NamedParameterSpec with " + name, ncdfe);
         }
     }
 }

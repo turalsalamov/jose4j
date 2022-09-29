@@ -995,6 +995,7 @@ public class VerificationJwkSelectorTest
                 "      \"crv\": \"P-256\"" +
                 "    }," +
                 "    {\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"EmqN44zWvm_L4PRJqrapUgY8EbDj-A5mhW1BBoad71c\"}," +
+                "    {\"kty\":\"OKP\",\"crv\":\"X25519\",\"x\":\"gxFiyHTiib96JZp42H852rQ9tV54vP2zUcBhhPkZ6X0\"}," +
                 "    {" +
                 "      \"kty\": \"RSA\"," +
                 "      \"use\": \"sig\"," +

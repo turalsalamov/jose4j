@@ -17,6 +17,7 @@ package org.jose4j.jwk;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,9 +36,9 @@ public class SimpleJwkFilter
     private Criteria x5t;
     private Criteria x5tS256;
     private boolean allowThumbsFallbackDeriveFromX5c;
-    private KeyOpsCriteria keyOps;
+    private MultiValueCriteria keyOps;
 
-    private Criteria crv;
+    private MultiValueCriteria crv;
 
     public void setKid(String expectedKid, boolean omittedValueAcceptable)
     {
@@ -56,7 +57,7 @@ public class SimpleJwkFilter
 
     public void setKeyOperations(String[] expectedKeyOps, boolean omittedValueAcceptable)
     {
-        keyOps = new KeyOpsCriteria(expectedKeyOps, omittedValueAcceptable);
+        keyOps = new MultiValueCriteria(expectedKeyOps, omittedValueAcceptable);
     }
 
     public void setAlg(String expectedAlg, boolean omittedValueAcceptable)
@@ -81,7 +82,12 @@ public class SimpleJwkFilter
 
     public void setCrv(String expectedCrv, boolean omittedValueAcceptable)
     {
-        this.crv = new Criteria(expectedCrv, omittedValueAcceptable);
+        this.crv = new MultiValueCriteria(new String[] {expectedCrv}, omittedValueAcceptable);
+    }
+
+    public void setCrvs(String[] expectedCrvs, boolean omittedValueAcceptable)
+    {
+        this.crv = new MultiValueCriteria(expectedCrvs, omittedValueAcceptable);
     }
 
     public List<JsonWebKey> filter(Collection<JsonWebKey> jsonWebKeys)
@@ -96,7 +102,7 @@ public class SimpleJwkFilter
             String[] thumbs = getThumbs(jwk, allowThumbsFallbackDeriveFromX5c);
             match &= isMatch(x5t, thumbs[0]);
             match &= isMatch(x5tS256, thumbs[1]);
-            match &= isMatch(crv, getCrv(jwk));
+            match &= crv == null || crv.meetsCriteria(getCrv(jwk));
             match &= keyOps == null || keyOps.meetsCriteria(jwk.getKeyOps());
 
             if (match)
@@ -114,7 +120,16 @@ public class SimpleJwkFilter
 
     String getCrv(JsonWebKey jwk)
     {
-        return (jwk instanceof EllipticCurveJsonWebKey) ? ((EllipticCurveJsonWebKey) jwk).getCurveName() : null;
+        if (jwk instanceof EllipticCurveJsonWebKey)
+        {
+            return ((EllipticCurveJsonWebKey) jwk).getCurveName();
+        }
+        else if (jwk instanceof OctetKeyPairJsonWebKey)
+        {
+            return ((OctetKeyPairJsonWebKey) jwk).getSubtype();
+        }
+
+        return null;
     }
 
     String[] getThumbs(JsonWebKey jwk, boolean allowFallbackDeriveFromX5c)
@@ -162,15 +177,20 @@ public class SimpleJwkFilter
         }
     }
 
-    private static class KeyOpsCriteria
+    private static class MultiValueCriteria
     {
         String[] values;
         boolean noValueOk;
 
-        private KeyOpsCriteria(String[] values, boolean noValueOk)
+        private MultiValueCriteria(String[] values, boolean noValueOk)
         {
             this.values = values;
             this.noValueOk = noValueOk;
+        }
+
+        public boolean meetsCriteria(String value)
+        {
+            return meetsCriteria(Collections.singletonList(value));
         }
 
         public boolean meetsCriteria(List<String> values)

@@ -24,7 +24,9 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.EdECPublicKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.interfaces.XECPublicKey;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,26 @@ import java.util.Map;
  */
 public class JsonWebKeyTest
 {
+    @Test
+    public void factoryWithSomeOctetKeyPairJsonWebKeys() throws JoseException
+    {
+        String jwkJson = "{\"kty\":\"OKP\"," +
+                "\"d\":\"Y6KQHffZKlIXW1JdVvEBJCliWtuYk3pYQJoeSvfJEAw\"," +
+                "\"crv\":\"Ed25519\"," +
+                "\"x\":\"Jp1b9nhTp_Z2YmHC22k5oy32dIIWYOhiaD8PJQFcxgU\"}";
+        JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJson);
+        assertTrue(jwk instanceof OctetKeyPairJsonWebKey);
+        assertEquals(OctetKeyPairJsonWebKey.KEY_TYPE, jwk.getKeyType());
+        assertTrue(jwk.getKey() instanceof EdECPublicKey);
+
+        jwkJson = "{\"kty\":\"OKP\",\"d\":\"T4gjxXciGdlPcWC1Pgba0cptraIx8ZjORUyR-ttweZQ\"," +
+                "\"crv\":\"X25519\",\"x\":\"qPRE1ElE6NArtJ0rhMkjaR8_PJZLf6v6Zk_4Vo72jho\"}";
+        jwk = JsonWebKey.Factory.newJwk(jwkJson);
+        assertTrue(jwk instanceof OctetKeyPairJsonWebKey);
+        assertEquals(OctetKeyPairJsonWebKey.KEY_TYPE, jwk.getKeyType());
+        assertTrue(jwk.getKey() instanceof XECPublicKey);
+    }
+
     @Test
     public void testFactoryWithRsaPublicKey() throws JoseException
     {
