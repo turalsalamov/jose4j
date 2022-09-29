@@ -60,6 +60,32 @@ public class EdDsaTest
     }
 
     @Test
+    public void verifyProducedElsewhere() throws JoseException
+    {
+        // JWS created using Nimbus which uses Tink for EdDSA
+        PublicJsonWebKey jwk = PublicJsonWebKey.Factory.newPublicJwk(
+                "{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"sipir4_DXRPiq3vgQPbX5EIZjhdxFVO0bwcVnIFZxQA\"}");
+        String jws = "eyJhbGciOiJFZERTQSJ9.bWVo.BieQMHmbP-qyMnrbUV_mySYcoDqaxTrQGkGOZ5KGcAZ_8uwwSlds62O8yeHvp5sc4FnEas8XbJilf3-FQbQrAQ";
+
+        // verify the signature
+        JsonWebSignature jwsObject = new JsonWebSignature();
+        jwsObject.setCompactSerialization(jws);
+        jwsObject.setKey(jwk.getPublicKey());
+        Assert.assertTrue(jwsObject.verifySignature());
+        Assert.assertEquals("meh", jwsObject.getPayload());
+
+        // reproduce the JWS, which works b/c EdDSA is deterministic
+        jwk = PublicJsonWebKey.Factory.newPublicJwk(
+                "{\"kty\":\"OKP\",\"d\":\"-g8nVY3FlaY9SNE1c5Edn6kQXXQN13SVLCmdlKYgqYM\"," +
+                        "\"crv\":\"Ed25519\",\"x\":\"sipir4_DXRPiq3vgQPbX5EIZjhdxFVO0bwcVnIFZxQA\"}");
+        jwsObject = new JsonWebSignature();
+        jwsObject.setAlgorithmHeaderValue(AlgorithmIdentifiers.EDDSA);
+        jwsObject.setKey(jwk.getPrivateKey());
+        jwsObject.setPayload("meh");
+        Assert.assertEquals(jws, jwsObject.getCompactSerialization());
+    }
+
+    @Test
     public void ed25519RoundTripGenKeys() throws JoseException
     {
         EdDsaKeyUtil keyUtil = new EdDsaKeyUtil();
