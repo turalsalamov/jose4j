@@ -4,6 +4,7 @@ import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.keys.EdDsaKeyUtil;
 import org.jose4j.lang.JoseException;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.security.KeyPair;
@@ -13,6 +14,13 @@ import java.security.PublicKey;
 
 public class EdDsaTest
 {
+    @BeforeClass
+    public static void check()
+    {
+        // skip these tests if EdDSA isn't available (i.e. before Java 17)
+        org.junit.Assume.assumeTrue(new EdDsaKeyUtil().isAvailable());
+    }
+
     @Test
     public void rfc8037appendixA1to5() throws Exception
     {

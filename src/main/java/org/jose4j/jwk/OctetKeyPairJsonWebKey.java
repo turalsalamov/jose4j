@@ -4,6 +4,7 @@ import org.jose4j.base64url.Base64Url;
 import org.jose4j.keys.EdDsaKeyUtil;
 import org.jose4j.keys.OctetKeyPairUtil;
 import org.jose4j.keys.XDHKeyUtil;
+import org.jose4j.lang.ExceptionHelp;
 import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
 import org.jose4j.lang.UncheckedJoseException;
@@ -41,12 +42,12 @@ public class OctetKeyPairJsonWebKey extends PublicJsonWebKey
     public OctetKeyPairJsonWebKey(PublicKey publicKey)
     {
         super(publicKey);
-        if (publicKey instanceof XECKey)
+        if (XDHKeyUtil.isXECPublicKey(publicKey))
         {
             XECKey xecKey = (XECKey) publicKey;
             subtype = ((NamedParameterSpec) (xecKey).getParams()).getName();
         }
-        else if (publicKey instanceof EdECKey)
+        else if (EdDsaKeyUtil.isEdECPublicKey(publicKey))
         {
             EdECKey edECKey = (EdECKey) publicKey;
             subtype = edECKey.getParams().getName();
@@ -67,23 +68,30 @@ public class OctetKeyPairJsonWebKey extends PublicJsonWebKey
         super(params, jcaProvider);
 
         subtype = getString(params, SUBTYPE_MEMBER_NAME, true);
-        OctetKeyPairUtil keyUtil = subtypeKeyUtil();
-        if (keyUtil == null)
+        try
         {
-            throw new InvalidKeyException("\"" + subtype + "\" is an unknown or unsupported subtype value for the \"crv\" parameter.");
+            OctetKeyPairUtil keyUtil = subtypeKeyUtil();
+            if (keyUtil == null)
+            {
+                throw new InvalidKeyException("\"" + subtype + "\" is an unknown or unsupported subtype value for the \"crv\" parameter.");
+            }
+
+            String encodedX = getString(params, PUBLIC_KEY_MEMBER_NAME, true);
+            byte[] x = Base64Url.decode(encodedX);
+            key = keyUtil.publicKey(x, subtype);
+
+            checkForBareKeyCertMismatch();
+
+            if (params.containsKey(PRIVATE_KEY_MEMBER_NAME))
+            {
+                String encodedD = getString(params, PRIVATE_KEY_MEMBER_NAME, false);
+                byte[] d = Base64Url.decode(encodedD);
+                privateKey = keyUtil.privateKey(d, subtype);
+            }
         }
-
-        String encodedX = getString(params, PUBLIC_KEY_MEMBER_NAME, true);
-        byte[] x = Base64Url.decode(encodedX);
-        key = keyUtil.publicKey(x, subtype);
-
-        checkForBareKeyCertMismatch();
-
-        if (params.containsKey(PRIVATE_KEY_MEMBER_NAME))
+        catch (NoClassDefFoundError ncd)
         {
-            String encodedD = getString(params, PRIVATE_KEY_MEMBER_NAME, false);
-            byte[] d = Base64Url.decode(encodedD);
-            privateKey = keyUtil.privateKey(d, subtype);
+            throw new JoseException("Unable to instantiate key for OKP JWK with " +subtype+ ". " + ExceptionHelp.toStringWithCauses(ncd));
         }
 
         removeFromOtherParams(SUBTYPE_MEMBER_NAME, PUBLIC_KEY_MEMBER_NAME, PRIVATE_KEY_MEMBER_NAME);

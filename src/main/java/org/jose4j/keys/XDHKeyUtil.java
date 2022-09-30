@@ -118,4 +118,29 @@ public class XDHKeyUtil extends OctetKeyPairUtil
         // https://docs.oracle.com/en/java/javase/17/docs/specs/security/standard-names.html#keyfactory-algorithms
         return "XDH";
     }
+
+    static public boolean isXECPublicKey(Key key)
+    {
+        try
+        {
+            return key instanceof XECPublicKey;
+        }
+        catch (NoClassDefFoundError e)
+        {
+            return false;
+        }
+    }
+
+
+    static public boolean isXECPrivateKey(Key key)
+    {
+        try
+        {
+            return key instanceof XECPrivateKey;
+        }
+        catch (NoClassDefFoundError e)
+        {
+            return false;
+        }
+    }
 }

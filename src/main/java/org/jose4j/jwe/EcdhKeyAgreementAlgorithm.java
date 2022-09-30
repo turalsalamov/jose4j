@@ -31,6 +31,7 @@ import org.jose4j.jwx.KeyValidationSupport;
 import org.jose4j.keys.EcKeyUtil;
 import org.jose4j.keys.EllipticCurves;
 import org.jose4j.keys.KeyPersuasion;
+import org.jose4j.keys.XDHKeyUtil;
 import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
@@ -48,7 +49,6 @@ import java.security.SecureRandom;
 import java.security.interfaces.ECKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
-import java.security.interfaces.XECPrivateKey;
 import java.security.interfaces.XECPublicKey;
 import java.security.spec.ECFieldFp;
 import java.security.spec.ECParameterSpec;
@@ -90,12 +90,16 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
             checkCurveAllowed(receiverKey);
             ephemeralJwk = EcJwkGenerator.generateJwk(receiverKey.getParams(), keyPairGeneratorProvider, secureRandom);
         }
-        else
+        else if (XDHKeyUtil.isXECPublicKey(managementKey))
         {
             XECPublicKey receiverKey = (XECPublicKey) managementKey;
             NamedParameterSpec namedParameterSpec = (NamedParameterSpec) (receiverKey).getParams();
             String name = namedParameterSpec.getName();
             ephemeralJwk = OkpJwkGenerator.generateJwk(name, keyPairGeneratorProvider, secureRandom);
+        }
+        else
+        {
+            throw new InvalidKeyException("Inappropriate key for ECDH: " + managementKey);
         }
 
         return manageForEncrypt(managementKey, cekDesc, headers, ephemeralJwk, providerContext);
@@ -238,7 +242,7 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     @Override
     public void validateEncryptionKey(Key managementKey, ContentEncryptionAlgorithm contentEncryptionAlg) throws InvalidKeyException
     {
-        if (!(managementKey instanceof ECPublicKey || managementKey instanceof XECPublicKey))
+        if (!(managementKey instanceof ECPublicKey || XDHKeyUtil.isXECPublicKey(managementKey)))
         {
             throw new InvalidKeyException("Encrypting with ECDH expects ECPublicKey or XECPublicKey but was given " + managementKey);
         }
@@ -247,7 +251,7 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     @Override
     public void validateDecryptionKey(Key managementKey, ContentEncryptionAlgorithm contentEncryptionAlg) throws InvalidKeyException
     {
-        if (!(managementKey instanceof ECPrivateKey || managementKey instanceof XECPrivateKey))
+        if (!(managementKey instanceof ECPrivateKey || XDHKeyUtil.isXECPrivateKey(managementKey)))
         {
             throw new InvalidKeyException("Decrypting with ECDH expects ECPrivateKey or XECPrivateKey but was given " + managementKey);
         }

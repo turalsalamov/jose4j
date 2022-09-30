@@ -52,6 +52,7 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.keys.AesKey;
+import org.jose4j.keys.EdDsaKeyUtil;
 import org.jose4j.keys.EllipticCurves;
 import org.jose4j.keys.ExampleEcKeysFromJws;
 import org.jose4j.keys.X509Util;
@@ -73,6 +74,9 @@ public class ExamplesTest
 @Test
 public void rfc8037nestedJwtRoundTripExample() throws JoseException, InvalidJwtException, MalformedClaimException
 {
+    // skip these tests if EdDSA isn't available (i.e. before Java 17)
+    org.junit.Assume.assumeTrue(new EdDsaKeyUtil().isAvailable());
+
     // Generate an OKP JWK with Ed25519, which will be used for signing and verification of the JWT
     OctetKeyPairJsonWebKey senderJwk = OkpJwkGenerator.generateJwk(OctetKeyPairJsonWebKey.SUBTYPE_ED25519);
 

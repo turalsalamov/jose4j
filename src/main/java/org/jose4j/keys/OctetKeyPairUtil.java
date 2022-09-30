@@ -1,6 +1,7 @@
 package org.jose4j.keys;
 
 import org.jose4j.jwk.OctetKeyPairJsonWebKey;
+import org.jose4j.lang.ExceptionHelp;
 import org.jose4j.lang.JoseException;
 
 import java.security.InvalidAlgorithmParameterException;
@@ -68,9 +69,9 @@ abstract public class OctetKeyPairUtil extends KeyPairUtil
         {
             return new NamedParameterSpec(name);
         }
-        catch (NoClassDefFoundError ncdfe)
+        catch (NoClassDefFoundError ncd)
         {
-            throw new JoseException("Cannot get a NamedParameterSpec with " + name, ncdfe);
+            throw new JoseException(name + " NamedParameterSpec not available. " + ExceptionHelp.toStringWithCauses(ncd));
         }
     }
 }

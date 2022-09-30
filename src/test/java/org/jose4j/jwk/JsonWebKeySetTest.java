@@ -331,4 +331,41 @@ public class JsonWebKeySetTest
         assertEquals(3, jwks.getJsonWebKeys().size());
     }
 
+    @Test
+    public void okpsOk() throws Exception
+    {
+        // JWKS with some OKP keys that might not work depending on the java version
+        // just a check that the whole key set will parse without error at this level
+
+        String json = "{\"keys\":\n" +
+                "       [\n" +
+                "         {\"kty\":\"EC\",\n" +
+                "          \"crv\":\"P-256\",\n" +
+                "          \"x\":\"MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4\",\n" +
+                "          \"y\":\"4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM\",\n" +
+                "          \"use\":\"enc\",\n" +
+                "          \"kid\":\"1\"},\n" +
+                "\n" +
+                "        {\"kty\":\"OKP\",\"crv\":\"Ed448\",\"x\":\"LzuoHViWG285WNae4BAFKg44npQyMRqcON7_nt9J0fJBy2zqimJTTSi0SmHqfu0GwUIXIMg7vl2A\"}," +
+                "        {\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"x\":\"5gsMTcjHtfvEXwZuvmkEgvldWK1NHXjg6qOzC1NzsnI\"}," +
+                "        {\"kty\":\"OKP\",\"crv\":\"X448\",\"x\":\"ujkHCs4gobVjp7P_CfTzydh9ue3jrSh8TaIh_uNsr4kXWRGibT7OBaYxudHn5dVMfQEEPD0RwacA\"}," +
+                "        {\"kty\":\"OKP\",\"crv\":\"X25519\",\"x\":\"XQGokbde5czDzRvEDPFSv3jYglZN1R9upLJCfFO_-lA\"}," +
+                "         {\"kty\":\"RSA\",\n" +
+                "          \"n\": \"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx\n" +
+                "     4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMs\n" +
+                "     tn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2\n" +
+                "     QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbI\n" +
+                "     SD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqb\n" +
+                "     w0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw\",\n" +
+                "          \"e\":\"AQAB\",\n" +
+                "          \"alg\":\"RS256\",\n" +
+                "          \"kid\":\"2011-04-29\"}\n" +
+                "       ]\n" +
+                "     }";
+
+        JsonWebKeySet jwks = new JsonWebKeySet(json);
+        int size = jwks.getJsonWebKeys().size();
+        assertTrue((2 <= size) && (size <= 6));
+    }
+
 }

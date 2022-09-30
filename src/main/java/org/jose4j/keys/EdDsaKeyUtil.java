@@ -107,4 +107,29 @@ public class EdDsaKeyUtil extends OctetKeyPairUtil
             throw new JoseException("Invalid key spec: " + e, e);
         }
     }
+
+    static public boolean isEdECPublicKey(Key key)
+    {
+        try
+        {
+            return key instanceof EdECPublicKey;
+        }
+        catch (NoClassDefFoundError e)
+        {
+            return false;
+        }
+    }
+
+
+    static public boolean isEdECPrivateKey(Key key)
+    {
+        try
+        {
+            return key instanceof EdECPrivateKey;
+        }
+        catch (NoClassDefFoundError e)
+        {
+            return false;
+        }
+    }
 }

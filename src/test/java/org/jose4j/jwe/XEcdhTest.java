@@ -11,6 +11,7 @@ import org.jose4j.keys.AesKey;
 import org.jose4j.keys.XDHKeyUtil;
 import org.jose4j.lang.JoseException;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.crypto.KeyAgreement;
@@ -21,6 +22,13 @@ import static org.junit.Assert.*;
 
 public class XEcdhTest
 {
+    @BeforeClass
+    public static void check()
+    {
+        // skip these tests if XDH isn't available (before java 11 I think)
+        org.junit.Assume.assumeTrue(new XDHKeyUtil().isAvailable());
+    }
+
     @Test
     public void rfc8037appendixA6() throws Exception
     {
@@ -86,7 +94,7 @@ public class XEcdhTest
     public void rfc8037appendixA7() throws Exception
     {
         // https://www.rfc-editor.org/rfc/rfc8037.html#appendix-A.7
-        
+
         String jwkJsonToEncryptTo = "{\"kty\":\"OKP\",\"crv\":\"X448\",\"kid\":\"Dave\",\n" +
                 "   \"x\":\"PreoKbDNIPW8_AtZm2_sz22kYnEHvbDU80W0MCfYuXL8PjT7QjKhPKcG3LV67D2uB73BxnvzNgk\"}";
         PublicJsonWebKey recipientPublicJwk = PublicJsonWebKey.Factory.newPublicJwk(jwkJsonToEncryptTo);
