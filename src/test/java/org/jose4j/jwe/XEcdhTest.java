@@ -157,6 +157,43 @@ public class XEcdhTest
     }
 
     @Test
+    public void extraCookbook() throws JoseException
+    {
+        // example content from
+        // https://github.com/ietf-jose/cookbook/blob/master/curve25519/ecdh-es.json
+
+        String jwkJson =
+                "{\n" +
+                "  \"kty\": \"OKP\",\n" +
+                "  \"kid\": \"Bob\",\n" +
+                "  \"use\": \"enc\",\n" +
+                "  \"crv\": \"X25519\",\n" +
+                "  \"x\": \"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\",\n" +
+                "  \"d\": \"XasIfmJKikt54X-Lg4AO5m87sSkmGLb9HC-LJ_-I4Os\"\n" +
+                "}";
+        PublicJsonWebKey jwk = PublicJsonWebKey.Factory.newPublicJwk(jwkJson);
+
+        String jweString =
+            "eyJhbGciOiJFQ0RILUVTIiwia2lkIjoiQm9iIiwiZXBrIjp7Imt0eSI6Ik9LUCIsImNydiI6IlgyNTUxOSIsIngiOiJ" +
+            "4dlhIaDNRMlM0Vm90WGdCZGRHV0RfS2huellaX2V1QjJlYWVrTHZ2QURVIn0sImVuYyI6IkExMjhHQ00ifQ..0tCoBvRfolezYjpJ." +
+            "cX3qZ4cfxiyr_Leem1b69MeLo-BHsMJy6RetGse91pgXjR7X87k1e7dJliYfzgseMV9dcVo3i1cAPeU2jkDCxrjxIBW0iUlF3JfkVH7" +
+            "DU3B8GxzkblOJKwJE58Sd0rJEN9rSwfLf66sbTiY_vGYf7cZhbWhj6wwBnICFfaRh_2NubCdma7zX_vsdaGJXHn-6-jjR9UaQUbJD-t" +
+            "Pn5UAW8Sa9lPAcncYZywscUM-FET3tePOH2h_xv_LFGuN2KYJ3BED_Eyo--oSX17DD7ksSt0wfzy_TWczaG1E_TWn4nvP6T6d5nMp9O" +
+            "dfLWQNopQHoQGWlPbaRLHCk2mNl1K5GsJ6Q4tjSdFWpqRDpQUz2eYAk" +
+            ".Yd4jUyp_PC5cACOwaAGwUQ";
+
+        String expected = "You can trust us to stick with you through thick and thin–to the bitter end." +
+                " And you can trust us to keep any secret of yours–closer than you keep it yourself." +
+                " But you cannot trust us to let you face trouble alone, and go off without a word." +
+                " We are your friends, Frodo.";
+
+        JsonWebEncryption jwe = new JsonWebEncryption();
+        jwe.setKey(jwk.getPrivateKey());
+        jwe.setCompactSerialization(jweString);
+        assertEquals(expected, jwe.getPayload());
+    }
+
+    @Test
     public void roundTripJweX25519() throws Exception
     {
         OctetKeyPairJsonWebKey recipientJwk = OkpJwkGenerator.generateJwk(OctetKeyPairJsonWebKey.SUBTYPE_X25519);
