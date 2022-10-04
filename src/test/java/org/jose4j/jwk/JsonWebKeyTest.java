@@ -26,9 +26,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.security.interfaces.ECPublicKey;
-import java.security.interfaces.EdECPublicKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.interfaces.XECPublicKey;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
