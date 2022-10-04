@@ -297,6 +297,37 @@ public class ByteUtilTest
     }
 
     @Test
+    public void reverseIt()
+    {
+        byte[] bytes = new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        byte[] reversed = ByteUtil.reverse(bytes);
+        Assert.assertArrayEquals(new byte[] {9, 8, 7, 6, 5, 4, 3, 2, 1, 0}, reversed);
+
+        bytes = new byte[] {16};
+        reversed = ByteUtil.reverse(bytes);
+        Assert.assertArrayEquals(new byte[] {16}, reversed);
+
+        bytes = new byte[] {};
+        reversed = ByteUtil.reverse(bytes);
+        Assert.assertArrayEquals(new byte[] {}, reversed);
+
+        bytes = new byte[] {16, 26};
+        reversed = ByteUtil.reverse(bytes);
+        Assert.assertArrayEquals(new byte[] {26, 16}, reversed);
+
+        bytes = new byte[] {2, 2};
+        reversed = ByteUtil.reverse(bytes);
+        Assert.assertArrayEquals(new byte[] {2, 2}, reversed);
+
+        bytes = ByteUtil.randomBytes(32);
+        reversed = ByteUtil.reverse(bytes);
+        Assert.assertFalse(Arrays.equals(bytes, reversed));
+        reversed = ByteUtil.reverse(reversed);
+        Assert.assertArrayEquals(bytes, reversed);
+    }
+
+
+    @Test
     public void bitLengthsNotLegit()
     {
         bitLengthNotLegit(Integer.MAX_VALUE);

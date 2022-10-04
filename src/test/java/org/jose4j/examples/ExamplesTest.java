@@ -21,7 +21,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmConstraints.ConstraintType;
@@ -33,6 +35,8 @@ import org.jose4j.jwk.EllipticCurveJsonWebKey;
 import org.jose4j.jwk.HttpsJwks;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
+import org.jose4j.jwk.OctetKeyPairJsonWebKey;
+import org.jose4j.jwk.OkpJwkGenerator;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwk.RsaJwkGenerator;
@@ -48,6 +52,7 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.keys.AesKey;
+import org.jose4j.keys.EdDsaKeyUtil;
 import org.jose4j.keys.EllipticCurves;
 import org.jose4j.keys.ExampleEcKeysFromJws;
 import org.jose4j.keys.X509Util;
@@ -58,12 +63,150 @@ import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.JoseException;
 import org.junit.Test;
 
+import static org.junit.Assert.fail;
+
 /**
  * There's probably a better way to do this but this is intended as a place to write and try and maintain
  * example code for the project wiki at https://bitbucket.org/b_c/jose4j/wiki/Home
  */
 public class ExamplesTest
 {
+@Test
+public void rfc8037nestedJwtRoundTripExample() throws JoseException, InvalidJwtException, MalformedClaimException
+{
+    // skip these tests if EdDSA isn't available (i.e. before Java 17)
+    org.junit.Assume.assumeTrue(new EdDsaKeyUtil().isAvailable());
+
+    // Generate an OKP JWK with Ed25519, which will be used for signing and verification of the JWT
+    OctetKeyPairJsonWebKey senderJwk = OkpJwkGenerator.generateJwk(OctetKeyPairJsonWebKey.SUBTYPE_ED25519);
+
+    // Give the JWK a Key ID (kid), which is just the polite thing to do
+    senderJwk.setKeyId("sender key");
+
+    // Generate an OKP JWK with X25519 which will be used for encryption and decryption of the JWT
+    OctetKeyPairJsonWebKey receiverJwk = OkpJwkGenerator.generateJwk(OctetKeyPairJsonWebKey.SUBTYPE_X25519);
+
+    // Give the JWK a Key ID (kid), which is just the polite thing to do
+    receiverJwk.setKeyId("receiver key");
+
+    // Create the Claims, which will be the content of the JWT
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer("sender");  // who creates the token and signs it
+    claims.setAudience("receiver"); // to whom the token is intended to be sent
+    claims.setExpirationTimeMinutesInTheFuture(10); // time when the token will expire (10 minutes from now)
+    claims.setGeneratedJwtId(); // a unique identifier for the token
+    claims.setIssuedAtToNow();  // when the token was issued/created (now)
+    claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
+    claims.setSubject("subject"); // the subject/principal is whom the token is about
+    claims.setClaim("email","mail@example.com"); // additional claims/attributes about the subject can be added
+    List<String> groups = Arrays.asList("group-1", "other-group", "group-3");
+    claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
+    Map<String, String> address = new LinkedHashMap<>(); // complex claim values can be set with a Map and will end up as a JSON Object
+    address.put("street_address", "123 Main St");
+    address.put("locality", "Anytown");
+    address.put("region", "Anystate");
+    address.put("country", "US");
+    claims.setClaim("address", address);
+
+    // A JWT is a JWS and/or a JWE with JSON claims as the payload.
+    // In this example it is a JWS nested inside a JWE
+    // So we first create a JsonWebSignature object.
+    JsonWebSignature jws = new JsonWebSignature();
+
+    // The payload of the JWS is JSON content of the JWT Claims
+    jws.setPayload(claims.toJson());
+
+    // The JWT is signed using the sender's private key
+    jws.setKey(senderJwk.getPrivateKey());
+
+    // Set the Key ID (kid) header because it's just the polite thing to do.
+    // We only have one signing key in this example but a using a Key ID helps
+    // facilitate a smooth key rollover process
+    jws.setKeyIdHeaderValue(senderJwk.getKeyId());
+
+    // Set the signature algorithm on the JWT/JWS that will integrity protect the claims
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.EDDSA);
+
+    // Sign the JWS and produce the compact serialization, which will be the inner JWT/JWS
+    // representation, which is a string consisting of three dot ('.') separated
+    // base64url-encoded parts in the form Header.Payload.Signature
+    String innerJwt = jws.getCompactSerialization();
+
+    // The outer JWT is a JWE
+    JsonWebEncryption jwe = new JsonWebEncryption();
+
+    // The output of the X25519 ECDH-ES key agreement and KDF will be the content encryption key
+    jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.ECDH_ES);
+
+    // The content encryption key is used to encrypt the payload
+    // with a composite AES-CBC / HMAC SHA2 encryption algorithm
+    String encAlg = ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256;
+    jwe.setEncryptionMethodHeaderParameter(encAlg);
+
+    // We encrypt to the receiver using their public key
+    jwe.setKey(receiverJwk.getPublicKey());
+    jwe.setKeyIdHeaderValue(receiverJwk.getKeyId());
+
+    // A nested JWT requires that the cty (Content Type) header be set to "JWT" in the outer JWT
+    jwe.setContentTypeHeaderValue("JWT");
+
+    // The inner JWT is the payload of the outer JWT
+    jwe.setPayload(innerJwt);
+
+    // Produce the JWE compact serialization, which is the complete JWT/JWE representation,
+    // which is a string consisting of five dot ('.') separated
+    // base64url-encoded parts in the form Header.EncryptedKey.IV.Ciphertext.AuthenticationTag
+    String jwt = jwe.getCompactSerialization();
+
+
+    // Now you can do something with the JWT. Like send it to some other party
+    // over the clouds and through the interwebs.
+    System.out.println("JWT: " + jwt);
+
+
+    // Use JwtConsumerBuilder to construct an appropriate JwtConsumer, which will
+    // be used to validate and process the JWT.
+    // The specific validation requirements for a JWT are context dependent, however,
+    // it is typically advisable to require a (reasonable) expiration time, a trusted issuer, and
+    // an audience that identifies your system as the intended recipient.
+    // It is also typically good to allow only the expected algorithm(s) in the given context
+    AlgorithmConstraints jwsAlgConstraints = new AlgorithmConstraints(ConstraintType.PERMIT,
+            AlgorithmIdentifiers.EDDSA);
+
+    AlgorithmConstraints jweAlgConstraints = new AlgorithmConstraints(ConstraintType.PERMIT,
+            KeyManagementAlgorithmIdentifiers.ECDH_ES);
+
+    AlgorithmConstraints jweEncConstraints = new AlgorithmConstraints(ConstraintType.PERMIT,
+            ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
+
+    JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+            .setRequireExpirationTime() // the JWT must have an expiration time
+            .setMaxFutureValidityInMinutes(300) // but the  expiration time can't be too crazy
+            .setRequireSubject() // the JWT must have a subject claim
+            .setExpectedIssuer("sender") // whom the JWT needs to have been issued by
+            .setExpectedAudience("receiver") // to whom the JWT is intended for
+            .setDecryptionKey(receiverJwk.getPrivateKey()) // decrypt with the receiver's private key
+            .setVerificationKey(senderJwk.getPublicKey()) // verify the signature with the sender's public key
+            .setJwsAlgorithmConstraints(jwsAlgConstraints) // limits the acceptable signature algorithm(s)
+            .setJweAlgorithmConstraints(jweAlgConstraints) // limits acceptable encryption key establishment algorithm(s)
+            .setJweContentEncryptionAlgorithmConstraints(jweEncConstraints) // limits acceptable content encryption algorithm(s)
+            .build(); // create the JwtConsumer instance
+
+    try
+    {
+        //  Validate the JWT and process it to the Claims
+        JwtClaims jwtClaims = jwtConsumer.processToClaims(jwt);
+        System.out.println("JWT validation succeeded! " + jwtClaims.getRawJson());
+    }
+    catch (InvalidJwtException e)
+    {
+        // InvalidJwtException will be thrown, if the JWT failed processing or validation in any way.
+        // Hopefully with meaningful explanations(s) about what went wrong.
+        System.out.println("Invalid JWT! " + e);
+        fail("Invalid JWT! " + e);
+    }
+
+}
 
 @Test
 public void nestedJwtRoundTripExample() throws JoseException, InvalidJwtException, MalformedClaimException
@@ -153,8 +296,8 @@ public void nestedJwtRoundTripExample() throws JoseException, InvalidJwtExceptio
     // Use JwtConsumerBuilder to construct an appropriate JwtConsumer, which will
     // be used to validate and process the JWT.
     // The specific validation requirements for a JWT are context dependent, however,
-    // it typically advisable to require a (reasonable) expiration time, a trusted issuer, and
-    // and audience that identifies your system as the intended recipient.
+    // it is typically advisable to require a (reasonable) expiration time, a trusted issuer, and
+    // an audience that identifies your system as the intended recipient.
     // It is also typically good to allow only the expected algorithm(s) in the given context
     AlgorithmConstraints jwsAlgConstraints = new AlgorithmConstraints(ConstraintType.PERMIT,
             AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
@@ -204,6 +347,7 @@ public void nestedJwtRoundTripExample() throws JoseException, InvalidJwtExceptio
         {
             System.out.println("JWT had wrong audience: " + e.getJwtContext().getJwtClaims().getAudience());
         }
+        fail("Invalid JWT! " + e);
     }
 
 }

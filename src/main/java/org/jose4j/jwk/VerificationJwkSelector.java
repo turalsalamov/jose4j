@@ -28,6 +28,8 @@ import java.util.List;
  */
 public class VerificationJwkSelector
 {
+    private static final String[] EDDSA_CRVS = new String[]{OctetKeyPairJsonWebKey.SUBTYPE_ED25519, OctetKeyPairJsonWebKey.SUBTYPE_ED448};
+
     public JsonWebKey select(JsonWebSignature jws, Collection<JsonWebKey> keys) throws JoseException
     {
         List<JsonWebKey> jsonWebKeys = selectList(jws, keys);
@@ -45,12 +47,21 @@ public class VerificationJwkSelector
             filtered = filter.filter(filtered);
         }
 
-        if (hasMoreThanOne(filtered) && EllipticCurveJsonWebKey.KEY_TYPE.equals(jws.getKeyType()))
+        if (hasMoreThanOne(filtered))
         {
-            JsonWebSignatureAlgorithm algorithm = jws.getAlgorithmNoConstraintCheck();
-            EcdsaUsingShaAlgorithm ecdsaAlgorithm = (EcdsaUsingShaAlgorithm) algorithm;
-            filter.setCrv(ecdsaAlgorithm.getCurveName(), SimpleJwkFilter.OMITTED_OKAY);
-            filtered = filter.filter(filtered);
+            String keyType = jws.getKeyType();
+            if (EllipticCurveJsonWebKey.KEY_TYPE.equals(keyType))
+            {
+                JsonWebSignatureAlgorithm algorithm = jws.getAlgorithmNoConstraintCheck();
+                EcdsaUsingShaAlgorithm ecdsaAlgorithm = (EcdsaUsingShaAlgorithm) algorithm;
+                filter.setCrv(ecdsaAlgorithm.getCurveName(), SimpleJwkFilter.OMITTED_OKAY);
+                filtered = filter.filter(filtered);
+            }
+            else if (OctetKeyPairJsonWebKey.KEY_TYPE.equals(keyType))
+            {
+                filter.setCrvs(EDDSA_CRVS, SimpleJwkFilter.OMITTED_OKAY);
+                filtered = filter.filter(filtered);
+            }
         }
 
         return filtered;

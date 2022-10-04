@@ -36,6 +36,8 @@ public class AlgorithmIdentifiers
 
     public static final String ECDSA_USING_SECP256K1_CURVE_AND_SHA256 = "ES256K";
 
+    public static final String EDDSA = "EdDSA";
+
     public static final String RSA_PSS_USING_SHA256 = "PS256";
     public static final String RSA_PSS_USING_SHA384 = "PS384";
     public static final String RSA_PSS_USING_SHA512 = "PS512";

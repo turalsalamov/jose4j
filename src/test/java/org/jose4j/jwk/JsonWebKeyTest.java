@@ -17,8 +17,10 @@
 package org.jose4j.jwk;
 
 import org.jose4j.json.JsonUtil;
+import org.jose4j.keys.EdDsaKeyUtil;
 import org.jose4j.keys.ExampleEcKeysFromJws;
 import org.jose4j.keys.ExampleRsaKeyFromJws;
+import org.jose4j.keys.XDHKeyUtil;
 import org.jose4j.lang.JoseException;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -33,6 +35,39 @@ import java.util.Map;
  */
 public class JsonWebKeyTest
 {
+    @Test
+    public void factoryWithXOctetKeyPairJsonWebKey() throws JoseException
+    {
+        // skip this test if XDH isn't available
+        org.junit.Assume.assumeTrue(new XDHKeyUtil().isAvailable());
+
+        String jwkJson = "{\"kty\":\"OKP\",\"d\":\"T4gjxXciGdlPcWC1Pgba0cptraIx8ZjORUyR-ttweZQ\"," +
+                "\"crv\":\"X25519\",\"x\":\"qPRE1ElE6NArtJ0rhMkjaR8_PJZLf6v6Zk_4Vo72jho\"}";
+        JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJson);
+        assertTrue(jwk instanceof OctetKeyPairJsonWebKey);
+        assertEquals(OctetKeyPairJsonWebKey.KEY_TYPE, jwk.getKeyType());
+        assertTrue(XDHKeyUtil.isXECPublicKey(jwk.getKey()));
+        assertTrue(XDHKeyUtil.isXECPrivateKey(((PublicJsonWebKey) jwk).getPrivateKey()));
+    }
+
+    @Test
+    public void factoryWithEdOctetKeyPairJsonWebKey() throws JoseException
+    {
+        // skip this test if EdDSA isn't available
+        org.junit.Assume.assumeTrue(new EdDsaKeyUtil().isAvailable());
+
+        String jwkJson = "{\"kty\":\"OKP\"," +
+                "\"d\":\"Y6KQHffZKlIXW1JdVvEBJCliWtuYk3pYQJoeSvfJEAw\"," +
+                "\"crv\":\"Ed25519\"," +
+                "\"x\":\"Jp1b9nhTp_Z2YmHC22k5oy32dIIWYOhiaD8PJQFcxgU\"}";
+        JsonWebKey jwk = JsonWebKey.Factory.newJwk(jwkJson);
+        assertTrue(jwk instanceof OctetKeyPairJsonWebKey);
+        assertEquals(OctetKeyPairJsonWebKey.KEY_TYPE, jwk.getKeyType());
+        assertTrue(EdDsaKeyUtil.isEdECPublicKey(jwk.getKey()));
+        assertTrue(EdDsaKeyUtil.isEdECPrivateKey(((PublicJsonWebKey) jwk).getPrivateKey()));
+    }
+
+
     @Test
     public void testFactoryWithRsaPublicKey() throws JoseException
     {

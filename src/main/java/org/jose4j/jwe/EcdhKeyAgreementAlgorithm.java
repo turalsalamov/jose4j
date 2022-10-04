@@ -23,7 +23,7 @@ import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwe.kdf.KdfUtil;
 import org.jose4j.jwk.EcJwkGenerator;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
-import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.OkpJwkGenerator;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.jwx.HeaderParameterNames;
 import org.jose4j.jwx.Headers;
@@ -31,6 +31,7 @@ import org.jose4j.jwx.KeyValidationSupport;
 import org.jose4j.keys.EcKeyUtil;
 import org.jose4j.keys.EllipticCurves;
 import org.jose4j.keys.KeyPersuasion;
+import org.jose4j.keys.XDHKeyUtil;
 import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
@@ -48,10 +49,12 @@ import java.security.SecureRandom;
 import java.security.interfaces.ECKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.XECPublicKey;
 import java.security.spec.ECFieldFp;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.EllipticCurve;
+import java.security.spec.NamedParameterSpec;
 
 /**
  */
@@ -62,7 +65,7 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     public EcdhKeyAgreementAlgorithm()
     {
         setAlgorithmIdentifier(KeyManagementAlgorithmIdentifiers.ECDH_ES);
-        setJavaAlgorithm("ECDH");
+        setJavaAlgorithm("ECDH"); // or XDH
         setKeyType(EllipticCurveJsonWebKey.KEY_TYPE);
         setKeyPersuasion(KeyPersuasion.ASYMMETRIC);
     }
@@ -76,11 +79,29 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     public ContentEncryptionKeys manageForEncrypt(Key managementKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, byte[] cekOverride, ProviderContext providerContext) throws JoseException
     {
         KeyValidationSupport.cekNotAllowed(cekOverride, getAlgorithmIdentifier());
-        ECPublicKey receiverKey = (ECPublicKey) managementKey;
         String keyPairGeneratorProvider = providerContext.getGeneralProviderContext().getKeyPairGeneratorProvider();
         SecureRandom secureRandom = providerContext.getSecureRandom();
-        checkCurveAllowed(receiverKey);
-        EllipticCurveJsonWebKey ephemeralJwk = EcJwkGenerator.generateJwk(receiverKey.getParams(), keyPairGeneratorProvider, secureRandom);
+
+        PublicJsonWebKey ephemeralJwk;
+
+        if (managementKey instanceof ECPublicKey)
+        {
+            ECPublicKey receiverKey = (ECPublicKey) managementKey;
+            checkCurveAllowed(receiverKey);
+            ephemeralJwk = EcJwkGenerator.generateJwk(receiverKey.getParams(), keyPairGeneratorProvider, secureRandom);
+        }
+        else if (XDHKeyUtil.isXECPublicKey(managementKey))
+        {
+            XECPublicKey receiverKey = (XECPublicKey) managementKey;
+            NamedParameterSpec namedParameterSpec = (NamedParameterSpec) (receiverKey).getParams();
+            String name = namedParameterSpec.getName();
+            ephemeralJwk = OkpJwkGenerator.generateJwk(name, keyPairGeneratorProvider, secureRandom);
+        }
+        else
+        {
+            throw new InvalidKeyException("Inappropriate key for ECDH: " + managementKey);
+        }
+
         return manageForEncrypt(managementKey, cekDesc, headers, ephemeralJwk, providerContext);
     }
 
@@ -107,11 +128,18 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     public CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext) throws JoseException
     {
         String keyFactoryProvider = providerContext.getGeneralProviderContext().getKeyFactoryProvider();
-        JsonWebKey ephemeralJwk = headers.getPublicJwkHeaderValue(HeaderParameterNames.EPHEMERAL_PUBLIC_KEY, keyFactoryProvider);
-        ECPublicKey ephemeralPublicKey = (ECPublicKey) ephemeralJwk.getKey();
-        ECPrivateKey privateKey = (ECPrivateKey) managementKey;
-        checkCurveAllowed(privateKey);
-        checkPointIsOnCurve(ephemeralPublicKey, privateKey);
+        PublicJsonWebKey ephemeralJwk = headers.getPublicJwkHeaderValue(HeaderParameterNames.EPHEMERAL_PUBLIC_KEY, keyFactoryProvider);
+
+        PublicKey ephemeralPublicKey = ephemeralJwk.getPublicKey();
+        PrivateKey privateKey = (PrivateKey) managementKey;
+
+        if (ephemeralPublicKey instanceof ECPublicKey)
+        {
+            ECPublicKey ecEphemeralPublicKey = (ECPublicKey) ephemeralPublicKey;
+            ECPrivateKey ecPrivateKey = (ECPrivateKey) managementKey;
+            checkCurveAllowed(ecPrivateKey);
+            checkPointIsOnCurve(ecEphemeralPublicKey, ecPrivateKey);
+        }
         KeyAgreement keyAgreement = createKeyAgreement(privateKey, ephemeralPublicKey, providerContext);
         return new CryptoPrimitive(keyAgreement);
     }
@@ -170,9 +198,8 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     }
 
 
-    private KeyAgreement getKeyAgreement(String provider) throws JoseException
+    private KeyAgreement getKeyAgreement(String provider, String javaAlgorithm) throws JoseException
     {
-        String javaAlgorithm = getJavaAlgorithm();
         try
         {
             return provider == null ? KeyAgreement.getInstance(javaAlgorithm) : KeyAgreement.getInstance(javaAlgorithm, provider);
@@ -190,7 +217,8 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     private KeyAgreement createKeyAgreement(PrivateKey privateKey, PublicKey publicKey, ProviderContext providerContext) throws JoseException
     {
         String keyAgreementProvider = providerContext.getSuppliedKeyProviderContext().getKeyAgreementProvider();
-        KeyAgreement keyAgreement = getKeyAgreement(keyAgreementProvider);
+        String javaName = (privateKey instanceof ECPrivateKey) ? getJavaAlgorithm() : "XDH";
+        KeyAgreement keyAgreement = getKeyAgreement(keyAgreementProvider, javaName);
 
         try
         {
@@ -214,13 +242,19 @@ public class EcdhKeyAgreementAlgorithm extends AlgorithmInfo implements KeyManag
     @Override
     public void validateEncryptionKey(Key managementKey, ContentEncryptionAlgorithm contentEncryptionAlg) throws InvalidKeyException
     {
-        KeyValidationSupport.castKey(managementKey, ECPublicKey.class);
+        if (!(managementKey instanceof ECPublicKey || XDHKeyUtil.isXECPublicKey(managementKey)))
+        {
+            throw new InvalidKeyException("Encrypting with ECDH expects ECPublicKey or XECPublicKey but was given " + managementKey);
+        }
     }
 
     @Override
     public void validateDecryptionKey(Key managementKey, ContentEncryptionAlgorithm contentEncryptionAlg) throws InvalidKeyException
     {
-        KeyValidationSupport.castKey(managementKey, ECPrivateKey.class);
+        if (!(managementKey instanceof ECPrivateKey || XDHKeyUtil.isXECPrivateKey(managementKey)))
+        {
+            throw new InvalidKeyException("Decrypting with ECDH expects ECPrivateKey or XECPrivateKey but was given " + managementKey);
+        }
     }
 
     @Override
