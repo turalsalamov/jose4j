@@ -43,7 +43,7 @@ public class EllipticCurves
     private static final Map<String, ECParameterSpec> nameToSpec = new HashMap<String, ECParameterSpec>();
     private static final Map<EllipticCurve, String> curveToName = new HashMap<EllipticCurve, String>();
 
-    private static void addCurve(String name, ECParameterSpec spec)
+    public static void addCurve(String name, ECParameterSpec spec)
     {
         nameToSpec.put(name, spec);
         curveToName.put(spec.getCurve(), name);
