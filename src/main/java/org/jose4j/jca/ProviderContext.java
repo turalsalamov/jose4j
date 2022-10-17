@@ -134,8 +134,8 @@ public class ProviderContext
         }
 
         /**
-         * Gets the the JCA provider to be used for relevant {@code KeyPairGenerator} operations.
-         * @return the name of the provider or {@code null} for the the system configured providers.
+         * Gets the JCA provider to be used for relevant {@code KeyPairGenerator} operations.
+         * @return the name of the provider or {@code null} for the system configured providers.
          */
         public String getKeyPairGeneratorProvider()
         {
@@ -143,7 +143,7 @@ public class ProviderContext
         }
 
         /**
-         *  Sets the the JCA provider to be used for relevant {@code KeyPairGenerator} operations.
+         *  Sets the JCA provider to be used for relevant {@code KeyPairGenerator} operations.
          *  {@code null} to use the system configured providers.
          *
          * @param keyPairGeneratorProvider  the provider name
@@ -154,8 +154,8 @@ public class ProviderContext
         }
 
         /**
-         * Gets the the JCA provider to be used for relevant {@code KeyAgreement} operations.
-         * @return the name of the provider or {@code null} for the the system configured providers.
+         * Gets the JCA provider to be used for relevant {@code KeyAgreement} operations.
+         * @return the name of the provider or {@code null} for the system configured providers.
          */
         public String getKeyAgreementProvider()
         {
@@ -163,7 +163,7 @@ public class ProviderContext
         }
 
         /**
-         *  Sets the the JCA provider to be used for relevant {@code KeyAgreement} operations.
+         *  Sets the JCA provider to be used for relevant {@code KeyAgreement} operations.
          *  {@code null} to use the system configured providers.
          *
          * @param keyAgreementProvider  the provider name
@@ -174,8 +174,8 @@ public class ProviderContext
         }
 
         /**
-         * Gets the the JCA provider to be used for relevant {@code Cipher} operations.
-         * @return the name of the provider or {@code null} for the the system configured providers.
+         * Gets the JCA provider to be used for relevant {@code Cipher} operations.
+         * @return the name of the provider or {@code null} for the system configured providers.
          */
         public String getCipherProvider()
         {
@@ -183,7 +183,7 @@ public class ProviderContext
         }
 
         /**
-         *  Sets the the JCA provider to be used for relevant {@code Cipher} operations.
+         *  Sets the JCA provider to be used for relevant {@code Cipher} operations.
          *  {@code null} to use the system configured providers.
          *
          * @param cipherProvider  the provider name
@@ -194,8 +194,8 @@ public class ProviderContext
         }
 
         /**
-         * Gets the the JCA provider to be used for relevant {@code Signature} operations.
-         * @return the name of the provider or {@code null} for the the system configured providers.
+         * Gets the JCA provider to be used for relevant {@code Signature} operations.
+         * @return the name of the provider or {@code null} for the system configured providers.
          */
         public String getSignatureProvider()
         {
@@ -203,7 +203,7 @@ public class ProviderContext
         }
 
         /**
-         *  Sets the the JCA provider to be used for relevant {@code Signature} operations.
+         *  Sets the JCA provider to be used for relevant {@code Signature} operations.
          *  {@code null} to use the system configured providers.
          *
          * @param signatureProvider the provider name
@@ -214,7 +214,7 @@ public class ProviderContext
         }
 
         /**
-         * Gets the the algorithm info (name and parameter spec) to be used as overrides for relevant {@code Signature} operations.
+         * Gets the algorithm info (name and parameter spec) to be used as overrides for relevant {@code Signature} operations.
          * Null means no override is done and the normal algorithm details are used.
          * @return the SignatureAlgorithmOverride object or null
          */
@@ -237,8 +237,8 @@ public class ProviderContext
         }
 
         /**
-         * Gets the the JCA provider to be used for relevant {@code Mac} operations.
-         * @return of the Mac provider or {@code null} for the the system configured providers.
+         * Gets the JCA provider to be used for relevant {@code Mac} operations.
+         * @return of the Mac provider or {@code null} for the system configured providers.
          */
         public String getMacProvider()
         {
@@ -246,7 +246,7 @@ public class ProviderContext
         }
 
         /**
-         *  Sets the the JCA provider to be used for relevant {@code Mac} operations.
+         *  Sets the JCA provider to be used for relevant {@code Mac} operations.
          *  {@code null} to use the system configured providers.
          *
          * @param macProvider the provider name
@@ -257,8 +257,8 @@ public class ProviderContext
         }
 
         /**
-         * Gets the the JCA provider to be used for relevant {@code MessageDigest} operations.
-         * @return the name of the provider or {@code null} for the the system configured providers.
+         * Gets the JCA provider to be used for relevant {@code MessageDigest} operations.
+         * @return the name of the provider or {@code null} for the system configured providers.
          */
         public String getMessageDigestProvider()
         {
@@ -266,7 +266,7 @@ public class ProviderContext
         }
 
         /**
-         *  Sets the the JCA provider to be used for relevant {@code MessageDigest} operations.
+         *  Sets the JCA provider to be used for relevant {@code MessageDigest} operations.
          *  {@code null} to use the system configured providers.
          *
          * @param messageDigestProvider the provider name
@@ -277,8 +277,8 @@ public class ProviderContext
         }
 
         /**
-         * Gets the the JCA provider to be used for relevant {@code KeyFactory} operations.
-         * @return the name of the provider or {@code null} for the the system configured providers.
+         * Gets the JCA provider to be used for relevant {@code KeyFactory} operations.
+         * @return the name of the provider or {@code null} for the system configured providers.
          */
         public String getKeyFactoryProvider()
         {
@@ -286,7 +286,7 @@ public class ProviderContext
         }
 
         /**
-         *  Sets the the JCA provider to be used for relevant {@code KeyFactory} operations.
+         *  Sets the JCA provider to be used for relevant {@code KeyFactory} operations.
          *  {@code null} to use the system configured providers.
          *
          * @param keyFactoryProvider the provider name

@@ -112,7 +112,7 @@ public class GoogsTooSmallKeyJwtConsumerTest
         //The first JwtConsumer is basically just used to parse the JWT into a JwtContext object.
         JwtContext jwtContext = firstPassJwtConsumer.process(ID_TOKEN);
 
-        // turn off key key validation (chiefly the enforcement of RSA 2048 as min key size) on the the inner most JOSE object (the JWS)
+        // turn off key key validation (chiefly the enforcement of RSA 2048 as min key size) on the innermost JOSE object (the JWS)
         jwtContext.getJoseObjects().iterator().next().setDoKeyValidation(false);
 
         JsonWebKeySet jwks = new JsonWebKeySet(JWKS_JSON);

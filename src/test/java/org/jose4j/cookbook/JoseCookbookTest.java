@@ -84,7 +84,7 @@ import org.junit.Test;
  * 3.6.  Octet Key (Encryption)
  *
  * 4.1. RSA v1.5 Signature
- * 4.2. RSA-PSS Signature (via the the Bouncy Castle provider)
+ * 4.2. RSA-PSS Signature
  * 4.3. ECDSA Signature
  * 4.4. HMAC-SHA2 Integrity Protection
  * 4.5. Detached Signature

@@ -451,7 +451,7 @@ public void jwtRoundTripExample() throws JoseException, InvalidJwtException, Mal
 
     // The HttpsJwks retrieves and caches keys from a the given HTTPS JWKS endpoint.
     // Because it retains the JWKs after fetching them, it can and should be reused
-    // to improve efficiency by reducing the number of outbound calls the the endpoint.
+    // to improve efficiency by reducing the number of outbound calls the endpoint.
     HttpsJwks httpsJkws = new HttpsJwks("https://example.com/jwks");
 
     // The HttpsJwksVerificationKeyResolver uses JWKs obtained from the HttpsJwks and will select the
