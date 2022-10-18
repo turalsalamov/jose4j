@@ -105,6 +105,7 @@ public class ProviderContext
         private String keyPairGeneratorProvider;
         private String keyAgreementProvider;
         private String cipherProvider;
+        private KeyDecipherMode keyDecipherModeOverride;
         private String signatureProvider;
         private SignatureAlgorithmOverride signatureAlgorithmOverride;
         private String macProvider;
@@ -191,6 +192,28 @@ public class ProviderContext
         public void setCipherProvider(String cipherProvider)
         {
             this.cipherProvider = cipherProvider;
+        }
+
+        /**
+         * Gets the cipher mode to use when deciphering/decrypting/unwrapping an encrypted content encryption key.
+         * @return the mode
+         * @since 0.9.1
+         */
+        public KeyDecipherMode getKeyDecipherModeOverride()
+        {
+            return keyDecipherModeOverride;
+        }
+
+        /**
+         * Sets the cipher mode to use when deciphering/decrypting/unwrapping an encrypted content encryption key.
+         * Using decrypt mode with certain JCA providers might be necessary for access to the raw bytes
+         * of the decrypted key, which are needed when decrypting the JWE Ciphertext.
+         * @param keyDecipherModeOverride the mode
+         * @since 0.9.1
+         */
+        public void setKeyDecipherModeOverride(KeyDecipherMode keyDecipherModeOverride)
+        {
+            this.keyDecipherModeOverride = keyDecipherModeOverride;
         }
 
         /**
@@ -339,5 +362,11 @@ public class ProviderContext
             return AlgorithmParameterSpec;
         }
     }
+
+    /**
+     * The cipher mode to use when deciphering/decrypting/unwrapping an encrypted content encryption key
+     * @since 0.9.1
+     */
+    public enum KeyDecipherMode {UNWRAP, DECRYPT}
 
 }

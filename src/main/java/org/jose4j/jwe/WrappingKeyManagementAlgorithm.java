@@ -63,7 +63,7 @@ public abstract class WrappingKeyManagementAlgorithm extends AlgorithmInfo imple
 
     protected ContentEncryptionKeys manageForEnc(Key managementKey, ContentEncryptionKeyDescriptor cekDesc, byte[] contentEncryptionKey, ProviderContext providerContext) throws JoseException
     {
-        ProviderContext.Context ctx = useSuppliedKeyProviderContext ? providerContext.getSuppliedKeyProviderContext() : providerContext.getGeneralProviderContext();
+        ProviderContext.Context ctx = chooseContext(providerContext);
         String provider = ctx.getCipherProvider();
 
         Cipher cipher = CipherUtil.getCipher(getJavaAlgorithm(), provider);
@@ -100,23 +100,31 @@ public abstract class WrappingKeyManagementAlgorithm extends AlgorithmInfo imple
     @Override
     public CryptoPrimitive prepareForDecrypt(Key managementKey, Headers headers, ProviderContext providerContext) throws JoseException
     {
-        String provider = providerContext.getSuppliedKeyProviderContext().getCipherProvider();
+        ProviderContext.Context ctx = chooseContext(providerContext);
+        String provider = ctx.getCipherProvider();
         Cipher cipher = CipherUtil.getCipher(getJavaAlgorithm(), provider);
+
+        int mode = ctx.getKeyDecipherModeOverride() == ProviderContext.KeyDecipherMode.DECRYPT ? Cipher.DECRYPT_MODE :  Cipher.UNWRAP_MODE;
 
         try
         {
-            initCipher(cipher, Cipher.UNWRAP_MODE, managementKey);
+            initCipher(cipher, mode, managementKey);
         }
         catch  (InvalidKeyException e)
         {
-            throw new org.jose4j.lang.InvalidKeyException("Unable to initialize cipher ("+cipher.getAlgorithm()+") for key decryption - " + e, e);
+            throw new org.jose4j.lang.InvalidKeyException("Unable to initialize cipher ("+cipher.getAlgorithm()+") for key unwrap/decrypt - " + e, e);
         }
         catch (InvalidAlgorithmParameterException e)
         {
-            throw new JoseException("Unable to initialize cipher ("+cipher.getAlgorithm()+") for key decryption - " + e, e);
+            throw new JoseException("Unable to initialize cipher ("+cipher.getAlgorithm()+") for key unwrap/decrypt - " + e, e);
         }
 
         return new CryptoPrimitive(cipher);
+    }
+
+    private ProviderContext.Context chooseContext(ProviderContext providerContext)
+    {
+        return useSuppliedKeyProviderContext ? providerContext.getSuppliedKeyProviderContext() : providerContext.getGeneralProviderContext();
     }
 
     public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
@@ -127,14 +135,23 @@ public abstract class WrappingKeyManagementAlgorithm extends AlgorithmInfo imple
 
         try
         {
-            return cipher.unwrap(encryptedKey, cekAlg, Cipher.SECRET_KEY);
+            ProviderContext.Context ctx = chooseContext(providerContext);
+            if (ctx.getKeyDecipherModeOverride() == ProviderContext.KeyDecipherMode.DECRYPT)
+            {
+                byte[] clear = cipher.doFinal(encryptedKey);
+                return new SecretKeySpec(clear, cekAlg);
+            }
+            else
+            {
+                return cipher.unwrap(encryptedKey, cekAlg, Cipher.SECRET_KEY);
+            }
         }
         catch (Exception e)
         {
             if (log.isDebugEnabled())
             {
                 String flatStack = ExceptionHelp.toStringWithCausesAndAbbreviatedStack(e, JsonWebEncryption.class);
-                log.debug("Key unwrap failed. Substituting a randomly generated CEK and proceeding. {}", flatStack);
+                log.debug("Key unwrap/decrypt failed. Substituting a randomly generated CEK and proceeding. {}", flatStack);
             }
             /* https://tools.ietf.org/html/draft-ietf-jose-json-web-encryption-39#section-11.5
                    and doing this should also result in the same type of error for different types of problems as suggested 11.4

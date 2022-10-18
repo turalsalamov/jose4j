@@ -1,5 +1,6 @@
 package org.jose4j.jwe;
 
+import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwa.JceProviderTestSupport;
 import org.jose4j.jwk.PublicJsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
@@ -75,6 +76,22 @@ public class RsaKeyManagementMoreTest
         for (String jweString : new String[] {jwe15, jweO, jweO2})
         {
             JsonWebEncryption jwe = new JsonWebEncryption();
+            jwe.setCompactSerialization(jweString);
+            jwe.setKey(jwk.getPrivateKey());
+            Assert.assertEquals("meh mode", jwe.getPlaintextString());
+
+            ProviderContext pc = new ProviderContext();
+            pc.getSuppliedKeyProviderContext().setKeyDecipherModeOverride(ProviderContext.KeyDecipherMode.DECRYPT);
+            jwe = new JsonWebEncryption();
+            jwe.setProviderContext(pc);
+            jwe.setCompactSerialization(jweString);
+            jwe.setKey(jwk.getPrivateKey());
+            Assert.assertEquals("meh mode", jwe.getPlaintextString());
+
+            pc = new ProviderContext();
+            pc.getSuppliedKeyProviderContext().setKeyDecipherModeOverride(ProviderContext.KeyDecipherMode.UNWRAP);
+            jwe = new JsonWebEncryption();
+            jwe.setProviderContext(pc);
             jwe.setCompactSerialization(jweString);
             jwe.setKey(jwk.getPrivateKey());
             Assert.assertEquals("meh mode", jwe.getPlaintextString());
