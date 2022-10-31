@@ -128,8 +128,8 @@ public class SimpleAeadCipher
         {
             byte[] plain = new byte[] {112,108,97,105,110,116,101,120,116};
             byte[] aad = new byte[] {97,97,100};
-            byte[] cek = new byte[keyByteLength];
-            byte[] iv = new byte[ivByteLength];
+            byte[] cek = ByteUtil.randomBytes(keyByteLength);
+            byte[] iv = ByteUtil.randomBytes(ivByteLength);
             try
             {
                 encrypt(new AesKey(cek), iv, plain, aad, null);
