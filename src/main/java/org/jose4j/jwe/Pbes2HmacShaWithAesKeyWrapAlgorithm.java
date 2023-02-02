@@ -49,7 +49,7 @@ public class Pbes2HmacShaWithAesKeyWrapAlgorithm  extends AlgorithmInfo implemen
 
     // RFC 2898 and JWA both recommend a minimum iteration count of 1000 and mandate at least 8 bytes of salt
     // so we'll go with defaults that somewhat exceed those requirements/recommendations
-    private long defaultIterationCount = 8192L;
+    private long defaultIterationCount = 8192L * 8;
     private int defaultSaltByteLength = 12;
 
     public Pbes2HmacShaWithAesKeyWrapAlgorithm(String alg, String hmacAlg, AesKeyWrapManagementAlgorithm keyWrapAlg)
@@ -79,6 +79,12 @@ public class Pbes2HmacShaWithAesKeyWrapAlgorithm  extends AlgorithmInfo implemen
             headers.setObjectHeaderValue(HeaderParameterNames.PBES2_ITERATION_COUNT, iterationCount);
         }
 
+        if (iterationCount < 1000)
+        {
+            throw new JoseException("iteration count ("+HeaderParameterNames.PBES2_ITERATION_COUNT+"="+
+                    iterationCount+") cannot be less than 1000 (and should probably be considerably more)");
+        }
+
         String saltInputString = headers.getStringHeaderValue(HeaderParameterNames.PBES2_SALT_INPUT);
         byte[] saltInput;
         Base64Url base64Url = new Base64Url();
@@ -91,6 +97,12 @@ public class Pbes2HmacShaWithAesKeyWrapAlgorithm  extends AlgorithmInfo implemen
         else
         {
             saltInput = base64Url.base64UrlDecode(saltInputString);
+        }
+
+
+        if (saltInput.length < 8)
+        {
+            throw new JoseException("A p2s salt input value containing 8 or more octets MUST be used.");
         }
 
         return deriveKey(managementKey, iterationCount, saltInput, providerContext);

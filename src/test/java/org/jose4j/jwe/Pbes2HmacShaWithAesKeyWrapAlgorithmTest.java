@@ -32,8 +32,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.*;
 import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.PBES2_HS256_A128KW;
 import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.PBES2_HS384_A192KW;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  */
@@ -183,4 +182,27 @@ public class Pbes2HmacShaWithAesKeyWrapAlgorithmTest
     }
 
 
+    @Test (expected = JoseException.class)
+    public void testTooSmallIterationCountRejected() throws JoseException
+    {
+        JsonWebEncryption encryptingJwe  = new JsonWebEncryption();
+        encryptingJwe.setHeader(HeaderParameterNames.PBES2_ITERATION_COUNT, 918L);
+        encryptingJwe.setAlgorithmHeaderValue(PBES2_HS256_A128KW);
+        encryptingJwe.setEncryptionMethodHeaderParameter(AES_128_CBC_HMAC_SHA_256);
+        encryptingJwe.setPayload("some text");
+        encryptingJwe.setKey(new PbkdfKey("super secret word"));
+        encryptingJwe.getCompactSerialization();
+    }
+
+    @Test (expected = JoseException.class)
+    public void testTooLittleSaltRejected() throws JoseException
+    {
+        JsonWebEncryption encryptingJwe  = new JsonWebEncryption();
+        encryptingJwe.setHeader(HeaderParameterNames.PBES2_SALT_INPUT, "bWVo");
+        encryptingJwe.setAlgorithmHeaderValue(PBES2_HS256_A128KW);
+        encryptingJwe.setEncryptionMethodHeaderParameter(AES_128_CBC_HMAC_SHA_256);
+        encryptingJwe.setPayload("some text");
+        encryptingJwe.setKey(new PbkdfKey("super secret word"));
+        encryptingJwe.getCompactSerialization();
+    }
 }
