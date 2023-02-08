@@ -16,9 +16,12 @@
 
 package org.jose4j.jwe;
 
+import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.keys.ExampleRsaJwksFromJwe;
 import org.jose4j.lang.JoseException;
 import org.junit.Test;
+
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.PERMIT;
 
 /**
  *
@@ -35,6 +38,7 @@ public class GeneralJweTest
         // key validation
         JsonWebEncryption jwe = new JsonWebEncryption();
         jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA1_5);
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA1_5));
         jwe.setKeyIdHeaderValue("meh");
         jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
         jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPublicKey());

@@ -21,11 +21,12 @@ import org.jose4j.jwa.AlgorithmInfo;
 import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwx.Headers;
 import org.jose4j.lang.ByteUtil;
-import org.jose4j.lang.ExceptionHelp;
+import org.jose4j.lang.IntegrityException;
 import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.SecretKeySpec;
@@ -33,6 +34,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.AlgorithmParameterSpec;
 
 /**
@@ -129,42 +131,30 @@ public abstract class WrappingKeyManagementAlgorithm extends AlgorithmInfo imple
 
     public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
     {
-        Cipher cipher = cryptoPrimitive.getCipher();
-
-        String cekAlg = cekDesc.getContentEncryptionKeyAlgorithm();
-
         try
         {
-            ProviderContext.Context ctx = chooseContext(providerContext);
-            if (ctx.getKeyDecipherModeOverride() == ProviderContext.KeyDecipherMode.DECRYPT)
-            {
-                byte[] clear = cipher.doFinal(encryptedKey);
-                return new SecretKeySpec(clear, cekAlg);
-            }
-            else
-            {
-                return cipher.unwrap(encryptedKey, cekAlg, Cipher.SECRET_KEY);
-            }
+            return unwrap(cryptoPrimitive, encryptedKey, providerContext, cekDesc);
         }
         catch (Exception e)
         {
-            if (log.isDebugEnabled())
-            {
-                String flatStack = ExceptionHelp.toStringWithCausesAndAbbreviatedStack(e, JsonWebEncryption.class);
-                log.debug("Key unwrap/decrypt failed. Substituting a randomly generated CEK and proceeding. {}", flatStack);
-            }
-            /* https://tools.ietf.org/html/draft-ietf-jose-json-web-encryption-39#section-11.5
-                   and doing this should also result in the same type of error for different types of problems as suggested 11.4
+            throw new IntegrityException(getAlgorithmIdentifier() + " key unwrap/decrypt failed.", e);
+        }
+    }
 
-               To mitigate the attacks described in RFC 3218 [RFC3218], the
-               recipient MUST NOT distinguish between format, padding, and length
-               errors of encrypted keys.  It is strongly recommended, in the event
-               of receiving an improperly formatted key, that the recipient
-               substitute a randomly generated CEK and proceed to the next step, to
-               mitigate timing attacks.
-             */
-            byte[] bytes = ByteUtil.randomBytes(cekDesc.getContentEncryptionKeyByteLength());
-            return new SecretKeySpec(bytes, cekAlg);
+    protected Key unwrap(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ProviderContext providerContext,  ContentEncryptionKeyDescriptor cekDesc)
+            throws NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException
+    {
+        ProviderContext.Context ctx = chooseContext(providerContext);
+        Cipher cipher = cryptoPrimitive.getCipher();
+        String cekAlg = cekDesc.getContentEncryptionKeyAlgorithm();
+        if (ctx.getKeyDecipherModeOverride() == ProviderContext.KeyDecipherMode.DECRYPT)
+        {
+            byte[] clear = cipher.doFinal(encryptedKey);
+            return new SecretKeySpec(clear, cekAlg);
+        }
+        else
+        {
+            return cipher.unwrap(encryptedKey, cekAlg, Cipher.SECRET_KEY);
         }
     }
 }

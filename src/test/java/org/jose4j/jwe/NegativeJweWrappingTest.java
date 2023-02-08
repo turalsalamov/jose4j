@@ -1,5 +1,6 @@
 package org.jose4j.jwe;
 
+import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.keys.ExampleRsaJwksFromJwe;
 import org.jose4j.lang.IntegrityException;
 import org.jose4j.lang.InvalidKeyException;
@@ -123,6 +124,7 @@ public class NegativeJweWrappingTest
     {
         // expect the IntegrityException (authn tag issue) for all these different problems
         JsonWebEncryption jwe = new JsonWebEncryption();
+        jwe.setAlgorithmConstraints(AlgorithmConstraints.NO_CONSTRAINTS);
         jwe.setCompactSerialization(cs);
         jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey());
         try

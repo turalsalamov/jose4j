@@ -17,17 +17,21 @@
 package org.jose4j.jwe;
 
 import org.jose4j.jca.ProviderContext;
+import org.jose4j.jwa.CryptoPrimitive;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.RsaJsonWebKey;
+import org.jose4j.jwx.Headers;
 import org.jose4j.jwx.KeyValidationSupport;
 import org.jose4j.keys.AesKey;
 import org.jose4j.keys.KeyPersuasion;
+import org.jose4j.lang.ByteUtil;
 import org.jose4j.lang.ExceptionHelp;
 import org.jose4j.lang.InvalidKeyException;
 import org.jose4j.lang.JoseException;
 
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -124,6 +128,49 @@ public class RsaKeyManagementAlgorithm extends WrappingKeyManagementAlgorithm im
         public Rsa1_5()
         {
             super("RSA/ECB/PKCS1Padding", KeyManagementAlgorithmIdentifiers.RSA1_5);
+        }
+
+        @Override
+        public Key manageForDecrypt(CryptoPrimitive cryptoPrimitive, byte[] encryptedKey, ContentEncryptionKeyDescriptor cekDesc, Headers headers, ProviderContext providerContext) throws JoseException
+        {
+            /* https://datatracker.ietf.org/doc/html/rfc7516#section-11.5
+                   and doing this should also result in the same type of error for different types
+                    of problems as suggested https://datatracker.ietf.org/doc/html/rfc7516#section-11.4
+
+               To mitigate the attacks described in RFC 3218 [RFC3218], the
+               recipient MUST NOT distinguish between format, padding, and length
+               errors of encrypted keys.  It is strongly recommended, in the event
+               of receiving an improperly formatted key, that the recipient
+               substitute a randomly generated CEK and proceed to the next step, to
+               mitigate timing attacks.
+             */
+
+            String cekAlg = cekDesc.getContentEncryptionKeyAlgorithm();
+            int expectedKeySize = cekDesc.getContentEncryptionKeyByteLength();
+            Key unwrappedKey;
+            Key randomKey = new SecretKeySpec(ByteUtil.randomBytes(expectedKeySize), cekAlg);
+
+            try
+            {
+                unwrappedKey = unwrap(cryptoPrimitive, encryptedKey, providerContext, cekDesc);
+
+                if (unwrappedKey.getEncoded().length != expectedKeySize)
+                {
+                    unwrappedKey = randomKey;
+                }
+            }
+            catch (Exception e)
+            {
+                if (log.isDebugEnabled())
+                {
+                    String flatStack = ExceptionHelp.toStringWithCausesAndAbbreviatedStack(e, JsonWebEncryption.class);
+                    log.debug("Key unwrap/decrypt failed. Substituting a randomly generated CEK and proceeding. {}", flatStack);
+                }
+
+                unwrappedKey = randomKey;
+            }
+
+            return unwrappedKey;
         }
     }
 }

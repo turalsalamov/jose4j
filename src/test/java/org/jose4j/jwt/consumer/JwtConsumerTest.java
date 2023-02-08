@@ -69,9 +69,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_128_GCM;
 import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_192_GCM;
 import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_256_GCM;
-import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.A128GCMKW;
-import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.A192GCMKW;
-import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.A256GCMKW;
+import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.*;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -197,6 +195,7 @@ public class JwtConsumerTest
                 .setDisableRequireSignature()
                 .setSkipSignatureVerification()
                 .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_2.getPrivateKey())
+                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, RSA1_5))
                 .build();
 
         JwtContext jwtContext = firstPassConsumer.process(jwt);
@@ -205,6 +204,7 @@ public class JwtConsumerTest
                 .setExpectedIssuer("joe")
                 .setEvaluationTime(NumericDate.fromSeconds(1300819300))
                 .setDecryptionKey(ExampleRsaJwksFromJwe.APPENDIX_A_2.getPrivateKey())
+                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, RSA1_5))
                 .setDisableRequireSignature()
                 .build();
 
@@ -252,6 +252,7 @@ public class JwtConsumerTest
                 .setDisableRequireSignature()
                 .setSkipSignatureVerification()
                 .setDecryptionKey(decryptionKey)
+                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, RSA1_5))
                 .build();
 
         JwtContext jwtContext = firstPassConsumer.process(jwt);
@@ -259,6 +260,7 @@ public class JwtConsumerTest
         RSAPublicKey verificationKey = ExampleRsaKeyFromJws.PUBLIC_KEY;
         JwtConsumerBuilder builder = new JwtConsumerBuilder()
                 .setDecryptionKey(decryptionKey)
+                .setJweAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, RSA1_5))
                 .setEnableRequireEncryption()
                 .setVerificationKey(verificationKey)
                 .setRequireExpirationTime()
@@ -2676,6 +2678,7 @@ public class JwtConsumerTest
         // asymmetric encryption only is NOT okay
         jsonWebEncryption = new JsonWebEncryption();
         jsonWebEncryption.setPlaintext(claimsJson);
+        jsonWebEncryption.setAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT, RSA1_5));
         jsonWebEncryption.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA1_5);
         jsonWebEncryption.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
         jsonWebEncryption.setKey(jwkRSA_b.getRsaPublicKey());

@@ -217,6 +217,7 @@ public class ProviderContextTest
             String payload = "meh";
             jwe.setPayload(payload);
             jwe.setAlgorithmHeaderValue(alg);
+            jwe.setAlgorithmConstraints(AlgorithmConstraints.NO_CONSTRAINTS);
             jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPublicKey());
             jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
             ProviderContext providerCtx = new ProviderContext();
@@ -228,6 +229,7 @@ public class ProviderContextTest
             String jwsCompactSerialization = jwe.getCompactSerialization();
 
             jwe = new JsonWebEncryption();
+            jwe.setAlgorithmConstraints(AlgorithmConstraints.NO_CONSTRAINTS);
             jwe.setCompactSerialization(jwsCompactSerialization);
             jwe.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_1.getPrivateKey());
             jwe.setProviderContext(providerCtx);

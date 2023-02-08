@@ -133,6 +133,7 @@ public class JsonWebEncryptionTest
         String plaintext = "Some text that's on double secret probation";
         jweForEncrypt.setPlaintext(plaintext);
         jweForEncrypt.setAlgorithmHeaderValue(RSA1_5);
+        jweForEncrypt.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA1_5));
         jweForEncrypt.setEncryptionMethodHeaderParameter(AES_128_CBC_HMAC_SHA_256);
         jweForEncrypt.setKey(ExampleRsaJwksFromJwe.APPENDIX_A_2.getPublicKey());
 
