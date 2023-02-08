@@ -42,7 +42,9 @@ import java.security.Key;
 public class JsonWebEncryption extends JsonWebStructure
 {
 	public static final short COMPACT_SERIALIZATION_PARTS = 5;
-	
+    private static final AlgorithmConstraints BLOCK_RSA1_5 =
+            new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.BLOCK, KeyManagementAlgorithmIdentifiers.RSA1_5);
+
     private Base64Url base64url = new Base64Url();
     
     private String plaintextCharEncoding = StringUtil.UTF_8;
@@ -57,6 +59,11 @@ public class JsonWebEncryption extends JsonWebStructure
     private AlgorithmConstraints contentEncryptionAlgorithmConstraints = AlgorithmConstraints.NO_CONSTRAINTS;
 
     private CryptoPrimitive decryptingPrimitive;
+
+    public JsonWebEncryption()
+    {
+        setAlgorithmConstraints(BLOCK_RSA1_5);
+    }
 
     public void setPlainTextCharEncoding(String plaintextCharEncoding)
     {

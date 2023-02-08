@@ -18,6 +18,7 @@ package org.jose4j.jwe;
 
 import junit.framework.TestCase;
 
+import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmFactoryFactory;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.PublicJsonWebKey;
@@ -382,6 +383,7 @@ public class NegativeJweKeyTest extends TestCase
     private void expectBadKeyFailOnProduce(String alg, String enc, Key key) throws JoseException
     {
         JsonWebEncryption jwe = new JsonWebEncryption();
+        jwe.setAlgorithmConstraints(AlgorithmConstraints.NO_CONSTRAINTS);
         jwe.setPlaintext("PLAIN OLD TEXT");
         jwe.setAlgorithmHeaderValue(alg);
         jwe.setEncryptionMethodHeaderParameter(enc);

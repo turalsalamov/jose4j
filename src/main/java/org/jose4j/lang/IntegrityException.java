@@ -24,4 +24,9 @@ public class IntegrityException extends JoseException
     {
         super(message);
     }
+
+    public IntegrityException(String message, Throwable cause)
+    {
+        super(message, cause);
+    }
 }

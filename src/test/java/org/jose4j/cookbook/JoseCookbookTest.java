@@ -776,6 +776,7 @@ public class JoseCookbookTest
         jwe = new JsonWebEncryption();
         jwe.setPlaintext(jwePlaintext);
         jwe.setKey(jwk.getPublicKey());
+        jwe.setAlgorithmConstraints(new AlgorithmConstraints(PERMIT, KeyManagementAlgorithmIdentifiers.RSA1_5));
         jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.RSA1_5);
         jwe.setKeyIdHeaderValue(jwk.getKeyId());
         jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256);
