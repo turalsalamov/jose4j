@@ -38,6 +38,12 @@
 
   <build>
     <plugins>
+      <!-- ================================================================== cifuzz pfofile ================================================================== -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.9</version>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -284,7 +290,8 @@
         </property>
       </activation>
       <build>
-        <plugins>
+          <plugins>
+          <!-- ================================================================== jacoco plugin ================================================================== -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
@@ -320,15 +327,39 @@
         </plugins>
       </build>
     </profile>
+     <profile>
+      <id>cifuzz</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <configuration>
+              <formats>${cifuzz.report.format}</formats>
+              <outputDirectory>${cifuzz.report.output}</outputDirectory>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <dependencies>
 
-    <!-- junit -->
+    <!-- ================================================================== junit ================================================================== -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>5.9.3</version>
+      <scope>test</scope>
+    </dependency>
+
+
+  <!-- ================================================================== jazzer-junit ================================================================== -->
+    <dependency>
+      <groupId>com.code-intelligence</groupId>
+      <artifactId>jazzer-junit</artifactId>
+      <version>0.19.0</version>
       <scope>test</scope>
     </dependency>
 
