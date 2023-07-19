@@ -8,3 +8,6 @@ target/
 .settings/
 *Thrash*
 bin/
+src/test/resources/org/jsoup/MyFuzzTestInputs/*
+src/test/resources/org/jsoup/fuzzing/*
+.cifuzz-*/

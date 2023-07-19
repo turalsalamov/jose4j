@@ -757,8 +757,4 @@ public final class CharacterReader {
         return false;
     }
 
-    // just used for testing
-    boolean rangeEquals(final int start, final int count, final String cached) {
-        return rangeEquals(charBuf, start, count, cached);
-    }
 }
