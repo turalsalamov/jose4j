@@ -1,14 +1,13 @@
-package org.jsoup.fuzzing;
+package org.jsoup.fuzzing.parser;
 
-import org.jsoup.parser.CharacterReader;
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
 import com.code_intelligence.jazzer.junit.FuzzTest;
-import org.jsoup.parser.ParseErrorList;
-
+import org.jsoup.parser.CharacterReader;
 
 import java.io.StringReader;
 
-class MyFuzzTest {
+public class CharacterReaderFuzz {
+
     @FuzzTest
     void trackNewLinesTest(FuzzedDataProvider data) {
         CharacterReader cr = new CharacterReader(new StringReader("a"), 15);
@@ -29,6 +28,15 @@ class MyFuzzTest {
     }
 
     @FuzzTest
+    void consumeToTest(FuzzedDataProvider data){
+        CharacterReader cr = new CharacterReader(new StringReader("a"), 15);
+
+        char alpha = data.consumeChar();
+
+        cr.consumeTo(alpha);
+    }
+
+    @FuzzTest
     void consumeToAnyTest(FuzzedDataProvider data){
         CharacterReader cr = new CharacterReader(new StringReader("a"), 15);
 
@@ -36,14 +44,4 @@ class MyFuzzTest {
 
         cr.consumeToAny(alpha);
     }
-
-    @FuzzTest
-    void trackingTest(FuzzedDataProvider data) {
-
-        int alpha = data.consumeInt();
-
-        ParseErrorList.tracking(alpha);
-
-    }
-
 }
